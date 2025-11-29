@@ -17,16 +17,31 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middleware
-app.use(cors({
-  origin: [
+const corsOptions = {
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+// Set allowed origins based on environment
+if (process.env.NODE_ENV === 'production') {
+  corsOptions.origin = [
+    'https://masjid-three.vercel.app',  // Your deployed frontend
     'http://localhost:5173',
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+  ];
+} else {
+  // For development
+  corsOptions.origin = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ];
+}
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
