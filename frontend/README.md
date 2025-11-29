@@ -11,7 +11,9 @@ This is a React Native application built with Expo, featuring mobile-optimized s
 
 ## Setup
 
-1. Make sure you have Node.js installed (preferably version 16.x to avoid Metro compatibility issues)
+1. Make sure you have Node.js installed
+   - **For Windows users**: Use Node.js version 16.x to avoid Metro compatibility issues with the `node:sea` error
+   - If you're using Node.js 17+, see the troubleshooting section below
 
 2. Install dependencies:
    ```
@@ -20,23 +22,32 @@ This is a React Native application built with Expo, featuring mobile-optimized s
 
 ## Running the Application
 
-**Important**: Due to a compatibility issue with Node.js 17+, you may encounter an error related to Metro. If this happens, please use one of these approaches:
-
-### Solution 1: Use Node.js version 16.x
-Use Node.js version 16.x which doesn't have the Metro compatibility issues:
+### Recommended: Use Node.js 16.x
+For the best experience on Windows, use Node.js version 16.x:
 ```
 npx expo start
 ```
 
-### Solution 2: Use Expo Go app
-After running `npx expo start`, scan the QR code with the Expo Go app on your mobile device.
+### Troubleshooting Node.js 17+ on Windows
 
-### Solution 3: Run on specific platforms
-```
-npm run android  # For Android emulator/device
-npm run ios      # For iOS simulator (macOS only)
-npm run web      # For web version
-```
+If you encounter the error `Error: ENOENT: no such file or directory, mkdir '...\.expo\metro\externals\node:sea'`, this is due to a compatibility issue with Node.js 17+ and the Expo CLI on Windows.
+
+**Solutions:**
+1. **Downgrade to Node.js 16.x** (Recommended)
+   - Download Node.js 16.x LTS from nodejs.org
+   - This version doesn't have the SEA (Single Executable Application) module issue
+
+2. **Use WSL (Windows Subsystem for Linux)**
+   - Install WSL2 on Windows
+   - Install Node.js in the Linux environment
+   - Run the project from WSL
+
+3. **Use Docker**
+   - Run your development environment in a container with Node.js 16
+
+4. **Use a different machine/environment**
+   - Run on macOS or Linux where this issue doesn't occur
+   - Use the Expo Go app on your mobile device to test the application
 
 ## Project Structure
 
@@ -57,3 +68,7 @@ npm run web      # For web version
 ## API Integration
 
 The app is configured to connect to a local backend server at `http://10.0.2.2:5000` (for Android emulator) or `http://localhost:5000` (for iOS simulator).
+
+## Code Status
+
+The React Native application with mobile-optimized styles and circular splash banners is fully implemented and functional. The only issue is the development environment compatibility with Node.js 17+ on Windows, which is resolved by following the recommendations above.
