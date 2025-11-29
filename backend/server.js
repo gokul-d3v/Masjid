@@ -17,31 +17,30 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // Middleware
-const corsOptions = {
+app.use(cors({
+  origin: function (origin, callback) {
+    // List of allowed origins
+    const allowedOrigins = [
+      'https://masjid-three.vercel.app',  // Your deployed frontend
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000'
+    ];
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Check if the origin is in the allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
-};
-
-// Set allowed origins based on environment
-if (process.env.NODE_ENV === 'production') {
-  corsOptions.origin = [
-    'https://masjid-three.vercel.app',  // Your deployed frontend
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000'
-  ];
-} else {
-  // For development
-  corsOptions.origin = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000'
-  ];
-}
-
-app.use(cors(corsOptions));
+}));
 app.use(express.json());
 
 // Routes
