@@ -35,6 +35,14 @@ const SignupPage: React.FC = () => {
     }
 
     try {
+      // Disable form submission button to prevent multiple requests
+      const formElement = document.querySelector('form');
+      const submitButton = formElement?.querySelector('button[type="submit"]') as HTMLButtonElement;
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending OTP...';
+      }
+
       // Directly use Axios to request OTP to be sent to the email
       const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com'}/auth/register`, {
         name: values.name,
@@ -49,10 +57,12 @@ const SignupPage: React.FC = () => {
 
       // Check if the response contains the expected success message
       const result = response.data;
-      if (result && result.message) {
-        toast.success('OTP sent successfully! Please check your email.');
 
-        // Navigate to OTP verification page with user data
+      // Always navigate to OTP verification page after a successful request
+      toast.success('OTP sent successfully! Please check your email.');
+
+      // Use setTimeout to ensure the toast shows before navigation
+      setTimeout(() => {
         navigate('/verify-otp', {
           state: {
             userData: {
@@ -63,25 +73,29 @@ const SignupPage: React.FC = () => {
             }
           }
         });
-      } else {
-        // In case the response format is different than expected
-        toast.success('OTP sent successfully! Please check your email.');
+      }, 500);
 
-        // Navigate to OTP verification page with user data
-        navigate('/verify-otp', {
-          state: {
-            userData: {
-              name: values.name,
-              email: values.email,
-              password: values.password,
-              phone: values.phone
-            }
-          }
-        });
-      }
     } catch (error: any) {
       console.error('Signup error:', error);
-      const errorMsg = error.response?.data?.error || 'Registration failed. Please try again.';
+
+      // Re-enable the submit button
+      const formElement = document.querySelector('form');
+      const submitButton = formElement?.querySelector('button[type="submit"]') as HTMLButtonElement;
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Sign Up';
+      }
+
+      let errorMsg = 'Registration failed. Please try again.';
+      if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      } else if (error.response?.data?.details) {
+        // For development, show more details if available
+        errorMsg = `Registration failed: ${error.response.data.details}`;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
       toast.error(errorMsg);
     }
   };

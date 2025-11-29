@@ -51,25 +51,38 @@ const OTPVerificationPage: React.FC = () => {
     setError('');
 
     try {
+      // Call the authentication service to verify OTP and register the user
       const response = await authService.verifyOTPAndRegister({
         ...userData,
         otp: values.otp
       });
 
       message.success('Registration successful!');
-      // Save token to localStorage (or context)
+
+      // Save token to localStorage
       localStorage.setItem('token', response.token);
 
-      // Show registration number to user
+      // Show success message with registration details if available
       if (response.user?.registrationNumber) {
         message.success(`Your Registration ID is: ${response.user.registrationNumber}`);
+      } else if (response.user?.name) {
+        message.success(`Welcome, ${response.user.name}! Registration successful.`);
       }
 
-      // Navigate to dashboard
-      navigate('/dashboard');
+      // Navigate to dashboard after a brief delay to show success message
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     } catch (err: any) {
       console.error('OTP verification error:', err);
-      const errorMsg = err.response?.data?.error || 'Invalid or expired OTP. Please try again.';
+      let errorMsg = 'Invalid or expired OTP. Please try again.';
+
+      if (err.response?.data?.error) {
+        errorMsg = err.response.data.error;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+
       setError(errorMsg);
       message.error(errorMsg);
     } finally {
@@ -85,8 +98,9 @@ const OTPVerificationPage: React.FC = () => {
     }
 
     setResendLoading(true);
-    
+
     try {
+      // Resend the OTP using the auth service
       await authService.requestOTP({
         email: userData.email,
         name: userData.name,
@@ -98,7 +112,17 @@ const OTPVerificationPage: React.FC = () => {
       setCountdown(300); // Reset to 5 minutes
     } catch (err: any) {
       console.error('Resend OTP error:', err);
-      const errorMsg = err.response?.data?.error || 'Failed to send OTP. Please try again.';
+      let errorMsg = 'Failed to send OTP. Please try again.';
+
+      if (err.response?.data?.error) {
+        errorMsg = err.response.data.error;
+      } else if (err.response?.data?.details) {
+        // For development, show more details if available
+        errorMsg = `Failed to send OTP: ${err.response.data.details}`;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+
       message.error(errorMsg);
     } finally {
       setResendLoading(false);
