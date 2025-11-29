@@ -54,7 +54,7 @@ export const authService = {
   // Login
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/login`, {
+      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export const authService = {
   // Request OTP for registration
   async requestOTP(userData: OTPRequestData): Promise<{ message: string; email: string }> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/register`, {
+      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export const authService = {
   // Verify OTP and register user
   async verifyOTPAndRegister(verifyData: OTPVerifyData): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/verify-otp`, {
+      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export const authService = {
   // Forgot password
   async forgotPassword(data: ForgotPasswordData): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/forgot-password`, {
+      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export const authService = {
   // Reset password
   async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/reset-password`, {
+      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
