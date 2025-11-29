@@ -33,16 +33,17 @@ const LandingPage: React.FC = () => {
             src="/Splash.png"
             alt="App Banner"
             style={{
-              maxWidth: '250px',
-              maxHeight: '250px',
-              width: '250px',
-              height: '250px',
+              maxWidth: '300px',
+              maxHeight: '300px',
+              width: '300px',
+              height: '300px',
               objectFit: 'contain',
               margin: '0 auto',
               display: 'block',
               borderRadius: '50%',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-              border: '4px solid rgba(255, 255, 255, 0.3)'
+              boxShadow: '0 15px 40px rgba(0, 0, 0, 0.25)',
+              border: '6px solid rgba(255, 255, 255, 0.4)',
+              background: 'white'
             }}
           />
           <div style={{ marginTop: '30px' }}>

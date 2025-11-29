@@ -291,19 +291,20 @@ const DashboardPage: React.FC = () => {
     <AppLayout>
       <div style={{ padding: '24px' }}>
         {/* Banner with splash image */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
           <img
             src="/Splash.png"
             alt="App Banner"
             style={{
-              maxWidth: '200px',
-              maxHeight: '200px',
-              width: '200px',
-              height: '200px',
+              maxWidth: '280px',
+              maxHeight: '280px',
+              width: '280px',
+              height: '280px',
               objectFit: 'contain',
               borderRadius: '50%',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-              border: '4px solid rgba(255, 255, 255, 0.3)'
+              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.2)',
+              border: '5px solid rgba(255, 255, 255, 0.4)',
+              background: 'white'
             }}
           />
         </div>

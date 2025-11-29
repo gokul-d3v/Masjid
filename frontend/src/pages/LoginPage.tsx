@@ -45,19 +45,20 @@ const LoginPage: React.FC = () => {
     >
       <div style={{ width: '100%', maxWidth: 500, margin: '0 16px' }}>
         {/* Banner with splash image */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
           <img
             src="/Splash.png"
             alt="App Banner"
             style={{
-              maxWidth: '200px',
-              maxHeight: '200px',
-              width: '200px',
-              height: '200px',
+              maxWidth: '250px',
+              maxHeight: '250px',
+              width: '250px',
+              height: '250px',
               objectFit: 'contain',
               borderRadius: '50%',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-              border: '4px solid rgba(255, 255, 255, 0.3)'
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
+              border: '5px solid rgba(255, 255, 255, 0.4)',
+              background: 'white'
             }}
           />
         </div>
