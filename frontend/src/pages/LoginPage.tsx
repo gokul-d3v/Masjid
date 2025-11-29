@@ -88,62 +88,63 @@ const LoginPage: React.FC = () => {
             </Typography.Text>
           </div>
 
-        <Form
-          name="login_form"
-          initialValues={{ remember: true }}
-          onFinish={handleSubmit}
-          layout="vertical"
-        >
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ required: true, type: 'email', message: 'Please enter a valid email!' }]}
+          <Form
+            name="login_form"
+            initialValues={{ remember: true }}
+            onFinish={handleSubmit}
+            layout="vertical"
           >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="Enter your email"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            label="Password"
-            rules={[{ required: true, message: 'Please enter your password!' }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="Enter your password"
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              size="large"
-              style={{
-                padding: '12px 0',
-                fontWeight: 600,
-                fontSize: '16px'
-              }}
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[{ required: true, type: 'email', message: 'Please enter a valid email!' }]}
             >
-              Sign In
-            </Button>
-          </Form.Item>
-        </Form>
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="Enter your email"
+              />
+            </Form.Item>
 
-        <div style={{ textAlign: 'center', marginTop: '16px' }}>
-          <Button
-            type="link"
-            size="small"
-            onClick={handleForgotPassword}
-            style={{ padding: 0 }}
-          >
-            Forgot Password?
-          </Button>
-        </div>
-      </Card>
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[{ required: true, message: 'Please enter your password!' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="Enter your password"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                size="large"
+                style={{
+                  padding: '12px 0',
+                  fontWeight: 600,
+                  fontSize: '16px'
+                }}
+              >
+                Sign In
+              </Button>
+            </Form.Item>
+          </Form>
+
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <Button
+              type="link"
+              size="small"
+              onClick={handleForgotPassword}
+              style={{ padding: 0 }}
+            >
+              Forgot Password?
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
