@@ -205,7 +205,7 @@ class AuthController {
       console.log('Controller: Generated OTP for user registration:', { email, otp }); // Logging for debugging
 
       // Log the attempt to send OTP
-      console.log('Attempting to send OTP to:', email, 'with OTP:', otp);
+      console.log('Attempting to send OTP to:', email, 'with OTP length:', otp.length);
 
       // Send OTP via email
       const emailResult = await emailService.sendOTP(email, otp);
@@ -214,11 +214,21 @@ class AuthController {
 
       if (!emailResult.success) {
         console.error('Failed to send OTP:', emailResult.error);
-        // Still return success to prevent email enumeration attacks
-        return res.status(200).json({
-          message: 'If an account with this email exists, an OTP has been sent.',
-          email: email
-        });
+
+        // For development and debugging, return the actual error
+        // In production, you might want to return a generic message to prevent enumeration
+        if (process.env.NODE_ENV === 'development') {
+          return res.status(500).json({
+            error: 'Failed to send OTP',
+            details: emailResult.error
+          });
+        } else {
+          // In production, return generic message to prevent email enumeration
+          return res.status(200).json({
+            message: 'If an account with this email exists, an OTP has been sent.',
+            email: email
+          });
+        }
       }
 
       // Return success response without creating user yet
