@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Form, Input, Card, Typography, message, Space, Alert } from 'antd';
 import { authService } from '../services/authService';
+import { AuthResponse } from '../services/authService';
 
 const { Title, Text } = Typography;
 
@@ -52,7 +53,7 @@ const OTPVerificationPage: React.FC = () => {
 
     try {
       // Call the authentication service to verify OTP and register the user
-      const response = await authService.verifyOTPAndRegister({
+      const response: AuthResponse = await authService.verifyOTPAndRegister({
         ...userData,
         otp: values.otp
       });

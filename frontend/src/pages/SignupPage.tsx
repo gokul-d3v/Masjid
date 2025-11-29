@@ -44,7 +44,7 @@ const SignupPage: React.FC = () => {
       }
 
       // Directly use Axios to request OTP to be sent to the email
-      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com'}/auth/register`, {
+      const response = await axios.post<{ message: string; email: string }>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com'}/auth/register`, {
         name: values.name,
         email: values.email,
         password: values.password,
