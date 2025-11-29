@@ -1,4 +1,5 @@
 import useAuthStore from '../store/authStore';
+import axios from 'axios';
 
 export interface LoginCredentials {
   email: string;
@@ -54,120 +55,100 @@ export const authService = {
   // Login
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/login`, {
-        method: 'POST',
+      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/login`, credentials, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      return data;
+      return response.data;
     } catch (error: any) {
       console.error('Login error:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(error.response.data.error || 'Login failed');
+      } else {
+        throw new Error('Network error. Please try again.');
+      }
     }
   },
 
   // Request OTP for registration
   async requestOTP(userData: OTPRequestData): Promise<{ message: string; email: string }> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/register`, {
-        method: 'POST',
+      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/register`, userData, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send OTP');
-      }
-
-      return data;
+      return response.data;
     } catch (error: any) {
       console.error('Request OTP error:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(error.response.data.error || 'Failed to send OTP');
+      } else {
+        throw new Error('Network error. Please try again.');
+      }
     }
   },
 
   // Verify OTP and register user
   async verifyOTPAndRegister(verifyData: OTPVerifyData): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/verify-otp`, {
-        method: 'POST',
+      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/verify-otp`, verifyData, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(verifyData),
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'OTP verification failed');
-      }
-
-      return data;
+      return response.data;
     } catch (error: any) {
       console.error('Verify OTP error:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(error.response.data.error || 'OTP verification failed');
+      } else {
+        throw new Error('Network error. Please try again.');
+      }
     }
   },
 
   // Forgot password
   async forgotPassword(data: ForgotPasswordData): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/forgot-password`, {
-        method: 'POST',
+      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/forgot-password`, data, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        }
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Forgot password request failed');
-      }
-
-      return result;
+      return response.data;
     } catch (error: any) {
       console.error('Forgot password error:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(error.response.data.error || 'Forgot password request failed');
+      } else {
+        throw new Error('Network error. Please try again.');
+      }
     }
   },
 
   // Reset password
   async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/reset-password`, {
-        method: 'POST',
+      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/reset-password`, data, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        }
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Password reset failed');
-      }
-
-      return result;
+      return response.data;
     } catch (error: any) {
       console.error('Reset password error:', error);
-      throw error;
+      if (error.response) {
+        throw new Error(error.response.data.error || 'Password reset failed');
+      } else {
+        throw new Error('Network error. Please try again.');
+      }
     }
   },
 };

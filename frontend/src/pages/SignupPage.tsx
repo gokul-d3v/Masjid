@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authService } from '../services/authService';
+import axios from 'axios';
 import {
   Card,
   Form,
@@ -34,16 +35,21 @@ const SignupPage: React.FC = () => {
     }
 
     try {
-      // Request OTP to be sent to the email
-      const result = await authService.requestOTP({
+      // Directly use Axios to request OTP to be sent to the email
+      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com'}/auth/register`, {
         name: values.name,
         email: values.email,
         password: values.password,
         phone: values.phone
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
       // Check if the response contains the expected success message
-      if (result && result.message && result.email) {
+      const result = response.data;
+      if (result && result.message) {
         toast.success('OTP sent successfully! Please check your email.');
 
         // Navigate to OTP verification page with user data
