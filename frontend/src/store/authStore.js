@@ -1,5 +1,6 @@
 // authStore.js
 import { create } from 'zustand';
+import { authService } from '../services/authService';
 
 const useAuthStore = create((set, get) => ({
   // State
@@ -11,17 +12,16 @@ const useAuthStore = create((set, get) => ({
   // Actions
   login: async (email, password) => {
     try {
-      // This would call your authService
-      // const response = await authService.login({ email, password });
-      // For now, simulating the login process
+      const response = await authService.login({ email, password });
+
       set({
-        user: { id: 1, email, name: 'Admin' },
-        token: 'mock-token', // In real app, use response.token
+        user: response.user,
+        token: response.token,
         isAuthenticated: true,
         loading: false,
       });
-      
-      return { success: true };
+
+      return { success: true, user: response.user };
     } catch (error) {
       set({ loading: false });
       return { success: false, error: error.message };

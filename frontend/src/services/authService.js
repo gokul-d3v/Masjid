@@ -1,13 +1,16 @@
 // authService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Update this to your backend URL
+const API_BASE_URL = 'http://10.0.2.2:5000'; // For Android emulator
+// const API_BASE_URL = 'http://localhost:5000'; // For iOS simulator
 
 export const authService = {
   // Login
   async login(credentials) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials, {
+        timeout: 10000, // 10 seconds timeout for mobile
+      });
       return response.data;
     } catch (error) {
       console.error('Login error:', error);
@@ -22,7 +25,9 @@ export const authService = {
   // Forgot password
   async forgotPassword(data) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, data);
+      const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, data, {
+        timeout: 10000, // 10 seconds timeout for mobile
+      });
       return response.data;
     } catch (error) {
       console.error('Forgot password error:', error);
@@ -37,7 +42,9 @@ export const authService = {
   // Reset password
   async resetPassword(data) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/reset-password`, data);
+      const response = await axios.post(`${API_BASE_URL}/auth/reset-password`, data, {
+        timeout: 10000, // 10 seconds timeout for mobile
+      });
       return response.data;
     } catch (error) {
       console.error('Reset password error:', error);

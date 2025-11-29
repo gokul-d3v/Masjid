@@ -4,11 +4,12 @@ import {
   Text,
   Image,
   StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
+  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+
+const { width, height } = Dimensions.get('window');
 
 const LandingScreen = () => {
   const navigation = useNavigation();
@@ -23,18 +24,18 @@ const LandingScreen = () => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+    <View style={styles.container}>
       <View style={styles.content}>
         <Image
-          source={require('../assets/Splash.png')} // Update this path to your splash image
+          source={require('../assets/Splash.png')}
           style={styles.banner}
         />
-        <View style={styles.loadingIndicator}>
-          <View style={styles.spinner} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0D6D3F" />
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -49,12 +50,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    width: '100%',
+    paddingHorizontal: 20,
   },
   banner: {
-    width: 250,
-    height: 250,
-    borderRadius: 125, // Makes it circular
+    width: width * 0.7, // Responsive to screen width
+    height: width * 0.7, // Keep it circular
+    borderRadius: (width * 0.7) / 2, // Perfect circle
     marginBottom: 30,
     borderWidth: 5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
@@ -68,26 +70,15 @@ const styles = StyleSheet.create({
     shadowRadius: 20.0,
     elevation: 24,
   },
-  loadingIndicator: {
+  loadingContainer: {
+    alignItems: 'center',
     marginTop: 30,
   },
-  spinner: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 4,
-    borderColor: 'rgba(0, 0, 0, 0.3)',
-    borderTopColor: '#0D6D3F',
-    alignSelf: 'center',
-    transform: [{ rotate: '0deg' }],
-    ...Platform.select({
-      ios: {
-        // Animation would be handled differently in actual implementation
-      },
-      android: {
-        // Animation would be handled differently in actual implementation
-      }
-    })
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#0D6D3F',
+    fontWeight: '600',
   },
 });
 

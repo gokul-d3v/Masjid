@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "my-fullstack-app",
+    "slug": "my-fullstack-app",
+    "version": "1.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.ico"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

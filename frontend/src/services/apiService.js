@@ -1,11 +1,13 @@
 // apiService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Update this to your backend URL
+const API_BASE_URL = 'http://10.0.2.2:5000'; // For Android emulator
+// const API_BASE_URL = 'http://localhost:5000'; // For iOS simulator
 
 // Create an axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000, // 10 seconds timeout for mobile
 });
 
 // Request interceptor to add token to headers

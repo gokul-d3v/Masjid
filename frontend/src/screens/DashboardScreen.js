@@ -8,8 +8,14 @@ import {
   SafeAreaView,
   StatusBar,
   RefreshControl,
+  Dimensions,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+
+const { width, height } = Dimensions.get('window');
 
 const DashboardScreen = () => {
   const [stats, setStats] = useState({
@@ -18,19 +24,26 @@ const DashboardScreen = () => {
     mayyathuFundCollected: 0,
   });
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Replace with your actual API endpoint
-      const response = await axios.get('http://localhost:5000/dashboard/stats', {
-        headers: {
-          Authorization: `Bearer ${/* token from auth store */ ''}`,
-        },
+      // Replace with your actual API endpoint after backend setup
+      // const response = await axios.get('http://localhost:5000/dashboard/stats', {
+      //   headers: {
+      //     Authorization: `Bearer ${/* token from auth store */ ''}`,
+      //   },
+      // });
+      // For now, using mock data
+      setStats({
+        totalUsers: 125,
+        totalMoneyCollected: 250000,
+        mayyathuFundCollected: 75000,
       });
-      setStats(response.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      Alert.alert('Error', 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -39,6 +52,10 @@ const DashboardScreen = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const handleAddCollection = () => {
+    Alert.alert('Info', 'Add collection functionality would be implemented here');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -52,7 +69,7 @@ const DashboardScreen = () => {
         {/* Circular splash banner at the top */}
         <View style={styles.bannerContainer}>
           <Image
-            source={require('../assets/Splash.png')} // Update this path to your splash image
+            source={require('../assets/Splash.png')}
             style={styles.banner}
           />
         </View>
@@ -63,24 +80,30 @@ const DashboardScreen = () => {
         </View>
 
         <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
+          <TouchableOpacity style={styles.statCard} onPress={() => Alert.alert('Total Users', `Total: ${stats.totalUsers}`)}>
             <Text style={styles.statValue}>{stats.totalUsers || 0}</Text>
             <Text style={styles.statLabel}>Total Users</Text>
-          </View>
+          </TouchableOpacity>
           
-          <View style={styles.statCard}>
+          <TouchableOpacity style={styles.statCard} onPress={() => Alert.alert('Total Money Collected', `Amount: ₹${(stats.totalMoneyCollected || 0).toLocaleString()}`)}>
             <Text style={styles.statValue}>
               ₹{(stats.totalMoneyCollected || 0).toLocaleString()}
             </Text>
             <Text style={styles.statLabel}>Total Money Collected</Text>
-          </View>
+          </TouchableOpacity>
           
-          <View style={styles.statCard}>
+          <TouchableOpacity style={styles.statCard} onPress={() => Alert.alert('Mayyathu Fund', `Amount: ₹${(stats.mayyathuFundCollected || 0).toLocaleString()}`)}>
             <Text style={styles.statValue}>
               ₹{(stats.mayyathuFundCollected || 0).toLocaleString()}
             </Text>
             <Text style={styles.statLabel}>Mayyathu Fund</Text>
-          </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.actionContainer}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleAddCollection}>
+            <Text style={styles.actionButtonText}>Add Collection</Text>
+          </TouchableOpacity>
         </View>
 
         {/* More dashboard content can be added here */}
@@ -100,10 +123,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   banner: {
-    width: 250,
-    height: 250,
-    borderRadius: 125, // Makes it circular
-    borderWidth: 5,
+    width: width * 0.6, // Responsive to screen width
+    height: width * 0.6, // Keep it circular
+    borderRadius: (width * 0.6) / 2, // Perfect circle
+    borderWidth: 4,
     borderColor: 'rgba(255, 255, 255, 0.4)',
     backgroundColor: 'white',
     shadowColor: '#000',
@@ -118,6 +141,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     marginBottom: 20,
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -128,32 +152,30 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#64748b',
+    textAlign: 'center',
   },
   statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 10,
-    gap: 10,
+    flexDirection: 'column',
+    paddingHorizontal: 15,
+    gap: 15,
   },
   statCard: {
-    flex: 1,
-    minWidth: '48%',
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 5,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: '#0D6D3F',
     marginBottom: 5,
@@ -162,6 +184,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     textAlign: 'center',
+  },
+  actionContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  actionButton: {
+    backgroundColor: '#0D6D3F',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#0D6D3F',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  actionButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

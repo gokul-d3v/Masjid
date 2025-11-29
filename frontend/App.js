@@ -1,20 +1,16 @@
-import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
-
-// Import screens
 import LandingScreen from './src/screens/LandingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
-import SplashScreen from './src/screens/SplashScreen';
 
 const Stack = createStackNavigator();
 
-const App = () => {
+export default function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+    <View style={styles.container}>
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Landing"
@@ -25,12 +21,12 @@ const App = () => {
           <Stack.Screen name="Landing" component={LandingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="Splash" component={SplashScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaView>
+      <StatusBar style="auto" />
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -38,5 +34,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
 });
-
-export default App;

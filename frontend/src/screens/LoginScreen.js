@@ -12,9 +12,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+
+const { width, height } = Dimensions.get('window');
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -70,9 +73,10 @@ const LoginScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.content}>
             <Image
-              source={require('../assets/Splash.png')} // Update this path to your splash image
+              source={require('../assets/Splash.png')}
               style={styles.banner}
             />
+            
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
 
@@ -138,14 +142,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     justifyContent: 'center',
+    width: '100%',
   },
   banner: {
-    width: 200,
-    height: 200,
-    borderRadius: 100, // Makes it circular
+    width: width * 0.6, // Responsive to screen width
+    height: width * 0.6, // Keep it circular
+    borderRadius: (width * 0.6) / 2, // Perfect circle
     alignSelf: 'center',
     marginBottom: 30,
-    borderWidth: 5,
+    borderWidth: 4,
     borderColor: 'rgba(255, 255, 255, 0.4)',
     backgroundColor: 'white',
     shadowColor: '#000',
@@ -163,7 +168,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     color: '#1e293b',
-    // Gradient effect would be implemented differently
   },
   subtitle: {
     fontSize: 14,
@@ -186,18 +190,35 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     fontSize: 16,
     backgroundColor: '#ffffff',
     color: '#1e293b',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   button: {
     backgroundColor: '#0D6D3F',
-    padding: 16,
-    borderRadius: 8,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 10,
+    shadowColor: '#0D6D3F',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   buttonDisabled: {
     backgroundColor: '#a3a3a3',
@@ -208,13 +229,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   bottomLinks: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: 20,
   },
   linkText: {
     color: '#0D6D3F',
     fontSize: 14,
+    fontWeight: '600',
   },
 });
 
