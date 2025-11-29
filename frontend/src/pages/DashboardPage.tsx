@@ -296,12 +296,14 @@ const DashboardPage: React.FC = () => {
             src="/Splash.png"
             alt="App Banner"
             style={{
-              maxWidth: '100%',
-              height: 'auto',
-              maxHeight: '150px',
+              maxWidth: '200px',
+              maxHeight: '200px',
+              width: '200px',
+              height: '200px',
               objectFit: 'contain',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+              borderRadius: '50%',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+              border: '4px solid rgba(255, 255, 255, 0.3)'
             }}
           />
         </div>
