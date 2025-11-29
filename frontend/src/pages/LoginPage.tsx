@@ -43,38 +43,50 @@ const LoginPage: React.FC = () => {
         padding: '16px'
       }}
     >
-      <Card
-        style={{
-          width: '100%',
-          maxWidth: 420,
-          margin: '0 16px',
-          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.05)',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          backdropFilter: 'blur(10px)',
-          background: 'rgba(255, 255, 255, 0.85)'
-        }}
-        styles={{ body: { padding: '24px' } }}
-      >
+      <div style={{ width: '100%', maxWidth: 420, margin: '0 16px' }}>
+        {/* Banner with splash image */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <Typography.Title
-            level={2}
+          <img
+            src="/Splash.png"
+            alt="App Banner"
             style={{
-              fontWeight: 700,
-              marginBottom: '8px',
-              background: 'linear-gradient(135deg, #0D6D3F 0%, #1a9f5a 100%)', // Using the requested primary color
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontSize: '24px'
+              maxWidth: '100%',
+              height: 'auto',
+              maxHeight: '150px',
+              objectFit: 'contain'
             }}
-          >
-            Welcome Back
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Sign in to your account
-          </Typography.Text>
+          />
         </div>
+
+        <Card
+          style={{
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.05)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            backdropFilter: 'blur(10px)',
+            background: 'rgba(255, 255, 255, 0.85)'
+          }}
+          styles={{ body: { padding: '24px' } }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <Typography.Title
+              level={2}
+              style={{
+                fontWeight: 700,
+                marginBottom: '8px',
+                background: 'linear-gradient(135deg, #0D6D3F 0%, #1a9f5a 100%)', // Using the requested primary color
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontSize: '24px'
+              }}
+            >
+              Welcome Back
+            </Typography.Title>
+            <Typography.Text type="secondary">
+              Sign in to your account
+            </Typography.Text>
+          </div>
 
         <Form
           name="login_form"
@@ -121,7 +133,7 @@ const LoginPage: React.FC = () => {
           </Form.Item>
         </Form>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ textAlign: 'center', marginTop: '16px' }}>
           <Button
             type="link"
             size="small"
@@ -129,14 +141,6 @@ const LoginPage: React.FC = () => {
             style={{ padding: 0 }}
           >
             Forgot Password?
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            href="/signup"
-            style={{ padding: 0 }}
-          >
-            Don't have an account? Sign up
           </Button>
         </div>
       </Card>
