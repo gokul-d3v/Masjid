@@ -55,7 +55,7 @@ export const authService = {
   // Login
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/login`, credentials, {
+      const response = await axios.post<AuthResponse>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/login`, credentials, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -75,7 +75,7 @@ export const authService = {
   // Request OTP for registration
   async requestOTP(userData: OTPRequestData): Promise<{ message: string; email: string }> {
     try {
-      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/register`, userData, {
+      const response = await axios.post<{ message: string; email: string }>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/register`, userData, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -95,7 +95,7 @@ export const authService = {
   // Verify OTP and register user
   async verifyOTPAndRegister(verifyData: OTPVerifyData): Promise<AuthResponse> {
     try {
-      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/verify-otp`, verifyData, {
+      const response = await axios.post<AuthResponse>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/verify-otp`, verifyData, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -115,7 +115,7 @@ export const authService = {
   // Forgot password
   async forgotPassword(data: ForgotPasswordData): Promise<{ message: string }> {
     try {
-      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/forgot-password`, data, {
+      const response = await axios.post<{ message: string }>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/forgot-password`, data, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -135,7 +135,7 @@ export const authService = {
   // Reset password
   async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
     try {
-      const response = await axios.post(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/reset-password`, data, {
+      const response = await axios.post<{ message: string }>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/reset-password`, data, {
         headers: {
           'Content-Type': 'application/json',
         }
