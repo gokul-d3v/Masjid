@@ -290,8 +290,24 @@ const DashboardPage: React.FC = () => {
   return (
     <AppLayout>
       <div style={{ padding: '24px' }}>
+        {/* Banner with splash image */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <img
+            src="/Splash.png"
+            alt="App Banner"
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+              maxHeight: '150px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+        </div>
+
         <div style={{ marginBottom: '24px' }}>
-          <Title level={2} style={{ 
+          <Title level={2} style={{
             color: isDarkMode ? '#f1f5f9' : '#1e293b',
             fontWeight: 700,
             marginBottom: '8px'
