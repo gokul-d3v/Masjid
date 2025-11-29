@@ -42,7 +42,23 @@ const SignupPage: React.FC = () => {
         phone: values.phone
       });
 
-      if (result.message) {
+      // Check if the response contains the expected success message
+      if (result && result.message && result.email) {
+        toast.success('OTP sent successfully! Please check your email.');
+
+        // Navigate to OTP verification page with user data
+        navigate('/verify-otp', {
+          state: {
+            userData: {
+              name: values.name,
+              email: values.email,
+              password: values.password,
+              phone: values.phone
+            }
+          }
+        });
+      } else {
+        // In case the response format is different than expected
         toast.success('OTP sent successfully! Please check your email.');
 
         // Navigate to OTP verification page with user data
