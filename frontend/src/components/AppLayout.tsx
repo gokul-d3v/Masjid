@@ -190,12 +190,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         onClose={() => setMobileDrawerOpen(false)}
         open={mobileDrawerOpen}
         width={200}
-        bodyStyle={{
-          padding: 0,
-          background: isDarkMode ? '#1e293b' : '#ffffff',
-          height: '100%',
-        }}
         styles={{
+          body: {
+            padding: 0,
+            background: isDarkMode ? '#1e293b' : '#ffffff',
+            height: '100%',
+          },
           header: {
             background: isDarkMode ? '#1e293b' : '#ffffff',
             color: isDarkMode ? '#f1f5f9' : '#1e293b',
