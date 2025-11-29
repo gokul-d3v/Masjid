@@ -48,12 +48,12 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/data', dataRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/members', memberRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/users', userRoutes);
+app.use('/auth', authRoutes);
+app.use('/data', dataRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/members', memberRoutes);
+app.use('/profile', profileRoutes);
+app.use('/users', userRoutes);
 
 // Start server
 app.listen(PORT, () => {
