@@ -1,0 +1,300 @@
+/* Theme styles */
+
+/* Light theme */
+[data-theme="light"] {
+  --background-color: #f8fafc;
+  --text-color: #000000;
+  --card-background: #ffffff;
+  --border-color: #d9d9d9;
+  --header-background: #0D6D3F;
+  --sidebar-background: #ffffff;
+  --input-background: #ffffff;
+  --input-border: #d9d9d9;
+  --input-hover-border: #0D6D3F;
+  --menu-item-hover-bg: #f5f5f5;
+  --text-secondary: #6b7280;
+  --text-disabled: #bfbfbf;
+  --btn-primary-bg: #0D6D3F;
+  --btn-primary-hover: #0a5a32;
+  --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --background-color: #0f172a;
+  --text-color: #f1f5f9;
+  --card-background: #1e293b;
+  --border-color: #334155;
+  --header-background: #0D6D3F;
+  --sidebar-background: #1e293b;
+  --input-background: #334155;
+  --input-border: #475569;
+  --input-hover-border: #64748b;
+  --menu-item-hover-bg: #334155;
+  --text-secondary: #94a3b8;
+  --text-disabled: #64748b;
+  --btn-primary-bg: #0D6D3F;
+  --btn-primary-hover: #0a5a32;
+  --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* System theme (matches OS preference) */
+[data-theme="system"] {
+  /* Default to light, will be overridden by JS */
+  --background-color: #f8fafc;
+  --text-color: #000000;
+  --card-background: #ffffff;
+  --border-color: #d9d9d9;
+  --header-background: #0D6D3F;
+  --sidebar-background: #ffffff;
+  --input-background: #ffffff;
+  --input-border: #d9d9d9;
+  --input-hover-border: #0D6D3F;
+  --menu-item-hover-bg: #f5f5f5;
+  --text-secondary: #6b7280;
+  --text-disabled: #bfbfbf;
+  --btn-primary-bg: #0D6D3F;
+  --btn-primary-hover: #0a5a32;
+  --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode override for system theme */
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --background-color: #0f172a;
+    --text-color: #f1f5f9;
+    --card-background: #1e293b;
+    --border-color: #334155;
+    --header-background: #0D6D3F;
+    --sidebar-background: #1e293b;
+    --input-background: #334155;
+    --input-border: #475569;
+    --input-hover-border: #64748b;
+    --menu-item-hover-bg: #334155;
+    --text-secondary: #94a3b8;
+    --text-disabled: #64748b;
+    --btn-primary-bg: #0D6D3F;
+    --btn-primary-hover: #0a5a32;
+    --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Apply theme variables */
+body {
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Layout components */
+.ant-layout {
+  background-color: var(--background-color) !important;
+}
+
+.ant-layout-content {
+  background-color: var(--background-color) !important;
+}
+
+/* Card components */
+.ant-card {
+  background-color: var(--card-background) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.ant-card-head {
+  background-color: var(--card-background) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.ant-card-head-title {
+  color: var(--text-color) !important;
+}
+
+.ant-card-body {
+  color: var(--text-color) !important;
+}
+
+/* Typography */
+.ant-typography {
+  color: var(--text-color) !important;
+}
+
+.ant-typography-secondary {
+  color: var(--text-secondary) !important;
+}
+
+/* Input fields */
+.ant-input {
+  background-color: var(--input-background) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-input:hover,
+.ant-input:focus {
+  border-color: var(--input-hover-border) !important;
+}
+
+/* Select components */
+.ant-select-selector {
+  background-color: var(--input-background) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-select-item {
+  color: var(--text-color) !important;
+  background-color: var(--card-background) !important;
+}
+
+.ant-select-item-option-selected {
+  background-color: var(--btn-primary-bg) !important;
+  color: white !important;
+}
+
+/* Buttons */
+.ant-btn-primary {
+  background-color: var(--btn-primary-bg) !important;
+  border-color: var(--btn-primary-bg) !important;
+}
+
+.ant-btn-primary:hover {
+  background-color: var(--btn-primary-hover) !important;
+  border-color: var(--btn-primary-hover) !important;
+}
+
+.ant-btn-default {
+  background-color: var(--input-background) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-btn-default:hover {
+  border-color: var(--input-hover-border) !important;
+}
+
+/* Modal components */
+.ant-modal-content {
+  background-color: var(--card-background) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-modal-header {
+  background-color: var(--card-background) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.ant-modal-title {
+  color: var(--text-color) !important;
+}
+
+/* Drawer components */
+.ant-drawer-content-wrapper {
+  background-color: var(--sidebar-background) !important;
+}
+
+.ant-drawer-content {
+  background-color: var(--sidebar-background) !important;
+  color: var(--text-color) !important;
+}
+
+/* Menu components */
+.ant-menu {
+  background-color: var(--sidebar-background) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-menu-item,
+.ant-menu-submenu-title {
+  color: var(--text-color) !important;
+}
+
+.ant-menu-item:hover,
+.ant-menu-submenu-title:hover {
+  background-color: var(--menu-item-hover-bg) !important;
+}
+
+.ant-menu-item-selected {
+  color: var(--btn-primary-bg) !important;
+  background-color: var(--menu-item-hover-bg) !important;
+}
+
+/* Data display components */
+.ant-statistic-title {
+  color: var(--text-secondary) !important;
+}
+
+.ant-statistic-content {
+  color: var(--text-color) !important;
+}
+
+/* Charts and graph elements */
+.chart-container {
+  background-color: var(--card-background) !important;
+}
+
+/* Table components */
+.ant-table {
+  background-color: var(--card-background) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom-color: var(--border-color) !important;
+}
+
+.ant-table-tbody > tr > td,
+.ant-table-thead > tr > th {
+  color: var(--text-color) !important;
+  background-color: var(--card-background) !important;
+}
+
+/* Form components */
+.ant-form-item-label > label {
+  color: var(--text-color) !important;
+}
+
+/* Divider */
+.ant-divider-inner-text {
+  background-color: var(--background-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Badge */
+.ant-badge-text {
+  color: var(--text-color) !important;
+}
+
+/* Alert components */
+.ant-alert {
+  color: var(--text-color) !important;
+}
+
+/* Links and navigation */
+a {
+  color: var(--btn-primary-bg) !important;
+}
+
+a:hover {
+  color: var(--btn-primary-hover) !important;
+}
+
+/* Specific overrides for header */
+.header-class {
+  background-color: var(--header-background) !important;
+}
+
+/* Ensure general text contrast */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color) !important;
+}
+
+p {
+  color: var(--text-color) !important;
+}
+
+/* Override any default colors that might cause visibility issues */
+*[class*="text-"] {
+  color: var(--text-color) !important;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Full-Stack React + Node.js App",
+  "short_name": "FS App",
+  "description": "A full-stack application with React frontend and Node.js backend",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "Splash.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "Splash.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
