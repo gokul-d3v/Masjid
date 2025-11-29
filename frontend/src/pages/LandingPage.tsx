@@ -31,14 +31,16 @@ const LandingPage: React.FC = () => {
         }}>
           <img
             src="/Splash.png"
-            alt="Splash Screen"
+            alt="App Banner"
             style={{
-              maxWidth: '300px',
+              maxWidth: '100%',
               maxHeight: '300px',
               width: 'auto',
               height: 'auto',
               margin: '0 auto',
-              display: 'block'
+              display: 'block',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
             }}
           />
           <div style={{ marginTop: '30px' }}>

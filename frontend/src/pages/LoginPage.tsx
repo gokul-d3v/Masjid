@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
         padding: '16px'
       }}
     >
-      <div style={{ width: '100%', maxWidth: 420, margin: '0 16px' }}>
+      <div style={{ width: '100%', maxWidth: 500, margin: '0 16px' }}>
         {/* Banner with splash image */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <img
@@ -52,8 +52,10 @@ const LoginPage: React.FC = () => {
             style={{
               maxWidth: '100%',
               height: 'auto',
-              maxHeight: '150px',
-              objectFit: 'contain'
+              maxHeight: '200px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
             }}
           />
         </div>
