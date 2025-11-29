@@ -6,10 +6,8 @@ import './App.css';
 import './themes.css';
 import useAuthStore from './store/authStore';
 import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
 import MainApp from './MainApp';
 import LandingPage from './pages/LandingPage';
-import OTPVerificationPage from './pages/OTPVerificationPage';
 import DashboardPage from './pages/DashboardPage';
 import AddUserPage from './pages/AddUserPage';
 import ProfilePage from './pages/ProfilePage';
@@ -70,20 +68,8 @@ function App() {
               }
             />
             <Route
-              path="/signup"
-              element={
-                <PublicRoute>
-                  <SignupPage />
-                </PublicRoute>
-              }
-            />
-            <Route
               path="/"
               element={<LandingPage />}
-            />
-            <Route
-              path="/verify-otp"
-              element={<OTPVerificationPage />}
             />
             <Route
               path="/home"
