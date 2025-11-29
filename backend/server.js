@@ -16,34 +16,35 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-// Enhanced CORS middleware
-app.use((req, res, next) => {
-  // Set CORS headers
-  res.header('Access-Control-Allow-Origin', 'https://masjid-three.vercel.app'); // Your deployed frontend
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', true);
+// Configure CORS based on environment
+const corsOptions = {
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-  // Handle preflight requests
+if (process.env.NODE_ENV === 'production') {
+  corsOptions.origin = 'https://masjid-three.vercel.app'; // Your deployed frontend
+} else {
+  // Allow local development origins
+  corsOptions.origin = [
+    'https://masjid-three.vercel.app',  // Your deployed frontend
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ];
+}
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
     next();
   }
 });
-
-// Regular CORS middleware (as fallback)
-app.use(cors({
-  origin: [
-    'https://masjid-three.vercel.app',  // Your deployed frontend
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
 
 app.use(express.json());
 
