@@ -72,7 +72,7 @@ export default function CollectionsScreen() {
             <FlatList
                 data={collections}
                 renderItem={renderItem}
-                keyExtractor={(item: any) => item._id}
+                keyExtractor={(item: any, index) => item._id || item.id || `${item.date}-${index}`}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }

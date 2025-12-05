@@ -69,7 +69,7 @@ export default function MembersListScreen() {
             <FlatList
                 data={members}
                 renderItem={renderItem}
-                keyExtractor={(item: any) => item._id}
+                keyExtractor={(item: any, index) => item._id || item.id || `${item.fullName}-${index}`}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
