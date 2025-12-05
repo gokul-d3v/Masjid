@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "mobile-app",
-    "slug": "mobile-app",
+    "slug": "masjidapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "30b52389-77f4-41e0-919a-1baf9e28a509"
+      }
+    },
+    "owner": "gokul_d3v"
   }
 }

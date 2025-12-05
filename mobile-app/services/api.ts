@@ -3,11 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // API Configuration
-// Temporarily using local backend until Render deploys CORS fix
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://192.168.25.60:5000';
-
-// For production (Render), use this instead:
-// const BASE_URL = 'https://masjid-backend-rn3t.onrender.com';
+// Using hosted backend server
+const BASE_URL = 'https://masjid-backend-rn3t.onrender.com';
 
 const api = axios.create({
     baseURL: BASE_URL,
