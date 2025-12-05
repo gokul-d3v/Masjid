@@ -15,40 +15,17 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Configure CORS based on environment
-if (process.env.NODE_ENV === 'production') {
-    app.use(cors({
-        origin: function (origin, callback) {
-            // Allow requests with no origin (like mobile apps or Postman)
-            if (!origin) return callback(null, true);
+// Configure CORS - Allow all origins for mobile app development
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin) return callback(null, true);
+        // Allow all origins for mobile app compatibility
+        return callback(null, true);
+    },
+    credentials: true
+}));
 
-            // List of allowed origins
-            const allowedOrigins = [
-                'https://masjid-three.vercel.app',
-                'http://localhost:8081', // Expo web
-                'http://localhost:19006', // Alternative Expo web port
-            ];
-
-            if (allowedOrigins.indexOf(origin) !== -1) {
-                callback(null, true);
-            } else {
-                callback(null, true); // Allow all origins for mobile app compatibility
-            }
-        },
-        credentials: true
-    }));
-} else {
-    // Allow all origins during development to handle various device configurations
-    app.use(cors({
-        origin: (origin, callback) => {
-            // Allow requests with no origin (like mobile apps or curl requests)
-            if (!origin) return callback(null, true);
-            // Allow all origins during development
-            return callback(null, true);
-        },
-        credentials: true
-    }));
-}
 
 app.use(express.json());
 
