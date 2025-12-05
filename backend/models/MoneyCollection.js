@@ -65,8 +65,7 @@ class MoneyCollectionModel {
   // Find all money collections
   static async findAll() {
     const collections = await MoneyCollection.find()
-      .populate('userId', 'fullName registrationNumber') // populate member details
-      .populate('collectedBy', 'name email'); // populate collected by details
+      .populate('userId', 'fullName registrationNumber'); // populate member details
 
     return collections.map(item => ({
       id: item._id,
@@ -83,8 +82,7 @@ class MoneyCollectionModel {
   // Find money collections by category
   static async findByCategory(category) {
     const collections = await MoneyCollection.find({ category })
-      .populate('userId', 'fullName registrationNumber') // populate member details
-      .populate('collectedBy', 'name email'); // populate collected by details
+      .populate('userId', 'fullName registrationNumber'); // populate member details
 
     return collections.map(item => ({
       id: item._id,
@@ -139,15 +137,13 @@ class MoneyCollectionModel {
   // Get mayyathu fund collections
   static async getMayyathuFundCollections() {
     return await MoneyCollection.find({ category: 'mayyathu' })
-      .populate('userId', 'fullName registrationNumber') // populate member details
-      .populate('collectedBy', 'name email'); // populate collected by details
+      .populate('userId', 'fullName registrationNumber'); // populate member details
   }
 
   // Get monthly donation collections
   static async getMonthlyDonationCollections() {
     return await MoneyCollection.find({ category: 'monthly_donation' })
-      .populate('userId', 'fullName registrationNumber') // populate member details
-      .populate('collectedBy', 'name email'); // populate collected by details
+      .populate('userId', 'fullName registrationNumber'); // populate member details
   }
 
   // Update a money collection entry
@@ -156,8 +152,7 @@ class MoneyCollectionModel {
       id,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).populate('userId', 'fullName registrationNumber')
-     .populate('collectedBy', 'name email');
+    ).populate('userId', 'fullName registrationNumber');
 
     if (!updatedCollection) return null;
 
