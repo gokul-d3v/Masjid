@@ -1,5 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LandingScreen from './src/screens/LandingScreen';
@@ -8,7 +8,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 
 const Stack = createStackNavigator();
 
-export default function App() {
+const App = () => {
   return (
     <View style={styles.container}>
       <NavigationContainer>
@@ -23,14 +23,14 @@ export default function App() {
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style="auto" />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
 });
+
+export default App;

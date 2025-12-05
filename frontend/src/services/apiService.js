@@ -1,8 +1,33 @@
 // apiService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://10.0.2.2:5000'; // For Android emulator
-// const API_BASE_URL = 'http://localhost:5000'; // For iOS simulator
+// Determine the base URL based on the platform
+const getAPIBaseUrl = () => {
+  // This checks if we're running in an environment where 'window' exists (web browser)
+  if (typeof window !== 'undefined') {
+    // For web, use the same host but different port
+    return `${window.location.protocol}//${window.location.hostname}:5000`;
+  }
+
+  // For mobile development with Expo:
+  // - Android emulator: requires 10.0.2.2 to access host's localhost
+  // - iOS simulator: can use localhost to access host's localhost
+  // - Physical device: requires host machine's IP address
+
+  // When using Expo development client, you'll need to customize the URL based on your device
+  // Android emulator: use 10.0.2.2
+  // iOS simulator: use localhost
+  // Physical device: use your computer's IP address on the same network
+  console.log('Expo development environment detected');
+
+  // Default to Android emulator setting, but you may need to change this based on your setup
+  // For Android emulator: return 'http://10.0.2.2:5000';
+  // For iOS simulator: return 'http://localhost:5000';
+  // For physical device: return 'http://[your_computer_ip]:5000';
+  return 'http://10.0.2.2:5000'; // Changed to work with Android emulators by default, change as needed
+};
+
+const API_BASE_URL = getAPIBaseUrl();
 
 // Create an axios instance
 const apiClient = axios.create({

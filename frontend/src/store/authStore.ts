@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { toast } from 'react-toastify';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   id: number;
@@ -52,7 +52,7 @@ const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null });
 
         try {
-          const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/login`, {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -80,7 +80,6 @@ const useAuthStore = create<AuthState>()(
           set({ loading: false, error: errorMessage });
 
           // Show toast notification for login failure
-          // We need to import toast first, so let's use the existing show toast method
           set(state => ({
             ...state,
             toast: {
@@ -111,7 +110,7 @@ const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null });
 
         try {
-          const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/register`, {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'}/auth/register`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -183,7 +182,7 @@ const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const response = await fetch(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000/api'}/profile`, {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'}/profile`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -207,7 +206,28 @@ const useAuthStore = create<AuthState>()(
             }
           }));
 
-          toast.success('Profile updated successfully!');
+          // Show success toast
+          set(state => ({
+            ...state,
+            toast: {
+              ...state.toast,
+              show: true,
+              type: 'success',
+              message: 'Profile updated successfully!',
+              duration: 3000
+            }
+          }));
+
+          // Auto hide toast after duration
+          setTimeout(() => {
+            set(state => ({
+              ...state,
+              toast: {
+                ...state.toast,
+                show: false
+              }
+            }));
+          }, 3000);
         } catch (error: any) {
           console.error('Update profile error:', error);
           const errorMessage = error.message || 'Failed to update profile';
@@ -276,7 +296,7 @@ const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage', // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+      storage: createJSONStorage(() => AsyncStorage), // Use AsyncStorage for React Native
     }
   )
 );

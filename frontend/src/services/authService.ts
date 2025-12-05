@@ -6,11 +6,6 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
 export interface UserData {
   id: number;
   email: string;
@@ -38,7 +33,8 @@ export const authService = {
   // Login
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await axios.post<AuthResponse>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/login`, credentials, {
+      const API_BASE_URL = (import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://10.0.2.2:5000';
+      const response = await axios.post<AuthResponse>(`${API_BASE_URL}/auth/login`, credentials, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -58,7 +54,8 @@ export const authService = {
   // Forgot password
   async forgotPassword(data: ForgotPasswordData): Promise<{ message: string }> {
     try {
-      const response = await axios.post<{ message: string }>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/forgot-password`, data, {
+      const API_BASE_URL = (import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://10.0.2.2:5000';
+      const response = await axios.post<{ message: string }>(`${API_BASE_URL}/auth/forgot-password`, data, {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -78,7 +75,8 @@ export const authService = {
   // Reset password
   async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
     try {
-      const response = await axios.post<{ message: string }>(`${(import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://localhost:5000'}/auth/reset-password`, data, {
+      const API_BASE_URL = (import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://10.0.2.2:5000';
+      const response = await axios.post<{ message: string }>(`${API_BASE_URL}/auth/reset-password`, data, {
         headers: {
           'Content-Type': 'application/json',
         }

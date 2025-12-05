@@ -20,7 +20,14 @@ export interface DashboardStats {
 const getAPIBaseUrl = (): string => {
   // Type assertion to handle TypeScript issue with import.meta.env
   const env = import.meta.env as Record<string, string>;
-  return env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+  // For consistency with the JS service, we'll use the same base URL
+  // Check for the environment variable, and provide a fallback
+  // For mobile development, you may need to change this to 10.0.2.2 or your host IP
+  const baseUrl = env.VITE_API_BASE_URL || 'http://10.0.2.2:5000';
+
+  // Remove any trailing '/api' since the backend routes handle that
+  return baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
 };
 
 // Create an axios interceptor for handling 403 errors
@@ -146,7 +153,7 @@ export const apiService = {
   async addMoneyCollection(collectionData: any): Promise<any> {
     try {
       const { token } = useAuthStore.getState();
-      const response = await axios.post<any>(`${getAPIBaseUrl()}/dashboard/money-collection`, collectionData, {
+      const response = await apiClient.post<any>(`/dashboard/money-collection`, collectionData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`

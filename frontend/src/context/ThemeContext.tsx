@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { Appearance } from 'react-native';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -11,36 +12,32 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system'); // Default to system
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Load theme from localStorage on initial load
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme || 'light';
-    setThemeState(savedTheme);
-  }, []);
+    // Determine initial theme based on system or selected theme
+    const determineInitialTheme = () => {
+      const colorScheme = Appearance.getColorScheme();
+      if (theme === 'system') {
+        return colorScheme === 'dark';
+      } else {
+        return theme === 'dark';
+      }
+    };
 
-  // Apply theme changes
-  useEffect(() => {
-    const root = window.document.documentElement;
-    
-    // Remove all theme classes
-    root.classList.remove('light-theme', 'dark-theme');
-    
-    // Apply theme
+    setIsDarkMode(determineInitialTheme());
+
+    // Subscribe to theme changes only when theme is set to 'system'
     if (theme === 'system') {
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(systemPrefersDark);
-      root.classList.add(systemPrefersDark ? 'dark-theme' : 'light-theme');
-      root.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
-    } else {
-      setIsDarkMode(theme === 'dark');
-      root.classList.add(theme === 'dark' ? 'dark-theme' : 'light-theme');
-      root.setAttribute('data-theme', theme);
+      const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+        setIsDarkMode(colorScheme === 'dark');
+      });
+
+      return () => {
+        subscription?.remove();
+      };
     }
-    
-    // Save to localStorage
-    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {
