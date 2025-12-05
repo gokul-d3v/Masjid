@@ -15,14 +15,15 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Configure CORS - Allow all origins for mobile app development
+// Configure CORS - Allow all origins including mobile apps and web apps
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or Postman)
-        if (!origin) return callback(null, true);
-        // Allow all origins for mobile app compatibility
-        return callback(null, true);
-    },
+    origin: [
+        "https://masjid-three.vercel.app",  // Web frontend
+        "https://masjidapp--c9hak4oafw.expo.app",  // Expo mobile app
+        "exp://*",  // Expo development
+        "https://exp.host",  // Expo hosting
+        "*"
+    ],
     credentials: true
 }));
 
