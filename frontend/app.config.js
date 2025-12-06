@@ -6,7 +6,7 @@ export default {
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   extra: {
-    EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:5000'
+    EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com'
   },
   splash: {
     image: './assets/splash.png',

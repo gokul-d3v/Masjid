@@ -25,6 +25,20 @@ const getAPIBaseUrl = (): string => {
     return expoBaseUrl.endsWith('/api') ? expoBaseUrl.slice(0, -4) : expoBaseUrl;
   }
 
+  // Try to get API URL from ExpoConstants if available
+  try {
+    const expoConstants: any = require('expo-constants');
+    if (expoConstants.expoConfig && expoConstants.expoConfig.extra) {
+      const expoConfigApiUrl = expoConstants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL;
+      if (expoConfigApiUrl) {
+        // Remove any trailing '/api' since the backend routes handle that
+        return expoConfigApiUrl.endsWith('/api') ? expoConfigApiUrl.slice(0, -4) : expoConfigApiUrl;
+      }
+    }
+  } catch (e) {
+    console.log('Could not access Expo constants, using fallback');
+  }
+
   // Type assertion to handle TypeScript issue with import.meta.env
   const env = import.meta.env as Record<string, string>;
 

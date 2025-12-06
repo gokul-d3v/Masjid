@@ -1,5 +1,6 @@
 // apiService.js
 import axios from 'axios';
+import Constants from 'expo-constants';
 
 // Determine the base URL based on the platform
 const getAPIBaseUrl = () => {
@@ -25,6 +26,18 @@ const getAPIBaseUrl = () => {
   // iOS simulator: use localhost
   // Physical device: use your computer's IP address on the same network
   console.log('Expo development environment detected');
+
+  // Try to get API URL from ExpoConstants if available
+  try {
+    if (Constants.expoConfig && Constants.expoConfig.extra) {
+      const expoConfigApiUrl = Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL;
+      if (expoConfigApiUrl) {
+        return expoConfigApiUrl;
+      }
+    }
+  } catch (e) {
+    console.log('Could not access Expo constants, using fallback');
+  }
 
   // Default to Android emulator setting, but you may need to change this based on your setup
   // For Android emulator: return 'http://10.0.2.2:5000';
