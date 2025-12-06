@@ -5,6 +5,9 @@ export default {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
+  extra: {
+    EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:5000'
+  },
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',

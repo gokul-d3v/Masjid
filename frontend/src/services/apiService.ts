@@ -18,6 +18,13 @@ export interface DashboardStats {
 }
 
 const getAPIBaseUrl = (): string => {
+  // Check for Expo environment variable first (for mobile)
+  const expoBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (expoBaseUrl) {
+    // Remove any trailing '/api' since the backend routes handle that
+    return expoBaseUrl.endsWith('/api') ? expoBaseUrl.slice(0, -4) : expoBaseUrl;
+  }
+
   // Type assertion to handle TypeScript issue with import.meta.env
   const env = import.meta.env as Record<string, string>;
 

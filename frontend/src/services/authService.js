@@ -1,8 +1,8 @@
 // authService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://10.0.2.2:5000'; // For Android emulator
-// const API_BASE_URL = 'http://localhost:5000'; // For iOS simulator
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:5000'; // For Android emulator
+// const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000'; // For iOS simulator
 
 export const authService = {
   // Login

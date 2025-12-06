@@ -52,7 +52,7 @@ const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null });
 
         try {
-          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'}/auth/login`, {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || (import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://10.0.2.2:5000/api'}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null });
 
         try {
-          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'}/auth/register`, {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || (import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://10.0.2.2:5000/api'}/auth/register`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -182,7 +182,7 @@ const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'}/profile`, {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || (import.meta.env as Record<string, string>).VITE_API_BASE_URL || 'http://10.0.2.2:5000/api'}/profile`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',

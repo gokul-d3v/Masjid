@@ -42,7 +42,8 @@ const LoginScreen = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/auth/login', {
+      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:5000';
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password,
       });

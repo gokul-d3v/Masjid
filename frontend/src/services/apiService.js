@@ -3,6 +3,12 @@ import axios from 'axios';
 
 // Determine the base URL based on the platform
 const getAPIBaseUrl = () => {
+  // First check for environment variable (for both web and mobile)
+  const envBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+  if (envBaseUrl) {
+    return envBaseUrl;
+  }
+
   // This checks if we're running in an environment where 'window' exists (web browser)
   if (typeof window !== 'undefined') {
     // For web, use the same host but different port
