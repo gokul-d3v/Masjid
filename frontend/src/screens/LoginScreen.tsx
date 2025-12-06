@@ -42,7 +42,7 @@ const LoginScreen = () => {
     setLoading(true);
 
     try {
-      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:5000';
+      const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com';
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password,

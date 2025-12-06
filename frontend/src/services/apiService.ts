@@ -39,16 +39,20 @@ const getAPIBaseUrl = (): string => {
     console.log('Could not access Expo constants, using fallback');
   }
 
-  // Type assertion to handle TypeScript issue with import.meta.env
-  const env = import.meta.env as Record<string, string>;
+  // Check for development environment (web)
+  if (typeof window !== 'undefined') {
+    // Type assertion to handle TypeScript issue with import.meta.env
+    const env = import.meta.env as Record<string, string>;
 
-  // For consistency with the JS service, we'll use the same base URL
-  // Check for the environment variable, and provide a fallback
-  // For mobile development, you may need to change this to 10.0.2.2 or your host IP
-  const baseUrl = env.VITE_API_BASE_URL || 'http://10.0.2.2:5000';
+    // For web, use environment variable or fallback
+    const baseUrl = env.VITE_API_BASE_URL || 'http://localhost:5000';
 
-  // Remove any trailing '/api' since the backend routes handle that
-  return baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
+    // Remove any trailing '/api' since the backend routes handle that
+    return baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
+  }
+
+  // Default to production backend when running in Expo development
+  return 'https://masjid-backend-rn3t.onrender.com';
 };
 
 // Create an axios interceptor for handling 403 errors

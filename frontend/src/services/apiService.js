@@ -39,11 +39,8 @@ const getAPIBaseUrl = () => {
     console.log('Could not access Expo constants, using fallback');
   }
 
-  // Default to Android emulator setting, but you may need to change this based on your setup
-  // For Android emulator: return 'http://10.0.2.2:5000';
-  // For iOS simulator: return 'http://localhost:5000';
-  // For physical device: return 'http://[your_computer_ip]:5000';
-  return 'http://10.0.2.2:5000'; // Changed to work with Android emulators by default, change as needed
+  // Default to production backend when running in Expo development
+  return 'https://masjid-backend-rn3t.onrender.com';
 };
 
 const API_BASE_URL = getAPIBaseUrl();

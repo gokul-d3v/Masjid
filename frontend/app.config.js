@@ -8,6 +8,8 @@ export default {
   extra: {
     EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://masjid-backend-rn3t.onrender.com'
   },
+  scheme: 'masjidapp',
+  platform: 'expo',
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
@@ -17,10 +19,11 @@ export default {
     '**/*'
   ],
   ios: {
-    supportsTablet: true
+    supportsTablet: true,
+    bundleIdentifier: 'com.masjidapp'
   },
   android: {
-    package: 'com.myfullstackapp',
+    package: 'com.masjidapp',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#FFFFFF'
