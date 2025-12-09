@@ -22,6 +22,7 @@ app.use(cors({
         "https://masjidapp--c9hak4oafw.expo.app",  // Expo mobile app
         "exp://*",  // Expo development
         "https://exp.host",  // Expo hosting
+        "http://localhost:8081", // Mobile app development
         "*"
     ],
     credentials: true
