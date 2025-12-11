@@ -21,4 +21,16 @@ router.patch('/:id/mayyathu-status', authenticateToken, MembersController.update
 // Delete a member
 router.delete('/:id', authenticateToken, MembersController.delete);
 
+// Public cron job endpoint (no authentication required)
+router.get('/cron', (req, res) => {
+    // Add your cron job logic here as needed
+    console.log(`Cron job executed at ${new Date().toISOString()}`);
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Cron job executed successfully',
+        timestamp: new Date().toISOString()
+    });
+});
+
 module.exports = router;
