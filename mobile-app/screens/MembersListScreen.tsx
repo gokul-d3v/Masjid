@@ -6,6 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, Heart, Trash2, Pencil, DollarSign, User, Mail, Phone, Calendar, MapPin, X } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useTheme } from 'react-native-paper';
 
 export default function MembersListScreen() {
     const insets = useSafeAreaInsets();
@@ -584,11 +585,11 @@ export default function MembersListScreen() {
         );
     };
 
+    const theme = useTheme();
     if (loading && !refreshing) {
         return (
             <View style={[styles.container, styles.centerContent]}>
-                <ActivityIndicator size="large" color="#10b981" />
-                <Text style={styles.loadingText}>Loading members...</Text>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }

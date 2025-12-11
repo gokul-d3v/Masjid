@@ -4,7 +4,6 @@ import {
     Button as PaperButton,
     TextInput as PaperTextInput,
     Checkbox,
-    ActivityIndicator
 } from 'react-native-paper';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react-native';
 import { authService } from '../services/api';

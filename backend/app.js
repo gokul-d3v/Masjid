@@ -32,4 +32,8 @@ app.use('/members', memberRoutes);
 app.use('/profile', profileRoutes);
 app.use('/users', userRoutes);
 
+app.get('/cron', (req, res) => {
+    res.json({ message: 'Welcome to the API!' });
+});
+
 module.exports = app;

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TextInput, Text as RNText } from 'react-native';
-import { Button as PaperButton, TextInput as PaperInput, HelperText, Appbar, Menu, Divider } from 'react-native-paper';
+import { Button as PaperButton, TextInput as PaperInput, HelperText, Appbar, Menu, Divider, ActivityIndicator } from 'react-native-paper';
 import { ArrowLeft } from 'lucide-react-native';
 import { dashboardService } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from 'react-native-paper';
 
 export default function AddCollectionScreen() {
     const [amount, setAmount] = useState('');

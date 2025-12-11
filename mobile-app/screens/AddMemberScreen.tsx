@@ -16,8 +16,10 @@ import {
     Card as PaperCard,
     Appbar,
     Menu,
-    Divider
+    Divider,
+    ActivityIndicator
 } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { memberService } from '../services/api';
 import { useNavigation, useRoute } from '@react-navigation/native';

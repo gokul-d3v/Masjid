@@ -4,6 +4,7 @@ import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'rea
 import { userService } from '../services/api';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { User, Mail, Phone, Calendar, MapPin } from 'lucide-react-native';
+import { useTheme } from 'react-native-paper';
 
 export default function UserDetailScreen() {
     const [name, setName] = useState('');
@@ -113,11 +114,11 @@ export default function UserDetailScreen() {
         },
     });
 
+    const theme = useTheme();
     if (loading) {
         return (
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#10b981" />
-                <Text style={{ marginTop: 10, color: '#6b7280' }}>Loading user details...</Text>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }

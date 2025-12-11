@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert,
 import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
 import { authService } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from 'react-native-paper';
 
 export default function RegisterScreen() {
     const [name, setName] = useState('');

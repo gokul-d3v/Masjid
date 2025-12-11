@@ -4,6 +4,7 @@ import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'rea
 import { profileService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from 'react-native-paper';
 
 export default function EditProfileScreen() {
     const [name, setName] = useState('');

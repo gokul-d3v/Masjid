@@ -4,6 +4,7 @@ import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'rea
 import { dashboardService } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, IndianRupee, TrendingDown, Calendar, User } from 'lucide-react-native';
+import { useTheme } from 'react-native-paper';
 
 export default function CollectionsScreen() {
     const [collections, setCollections] = useState<any[]>([]);
@@ -202,11 +203,11 @@ export default function CollectionsScreen() {
         </PaperCard>
     );
 
+    const theme = useTheme();
     if (loading && !refreshing) {
         return (
             <View style={[styles.container, styles.centerContent]}>
-                <ActivityIndicator size="large" color="#10b981" />
-                <Text style={styles.loadingText}>Loading collections...</Text>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }

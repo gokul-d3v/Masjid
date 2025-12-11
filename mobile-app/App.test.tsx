@@ -3,17 +3,6 @@ import renderer from 'react-test-renderer';
 
 import App from './App';
 
-// Mock dependencies to avoid native module and DOM issues
-jest.mock('@gluestack-ui/themed', () => ({
-    GluestackUIProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    Text: 'Text',
-    Box: 'Box',
-    config: {},
-}));
-
-jest.mock('@gluestack-ui/config', () => ({
-    config: {},
-}));
 
 jest.mock('@react-navigation/native', () => ({
     NavigationContainer: ({ children }: { children: React.ReactNode }) => <>{children}</>,

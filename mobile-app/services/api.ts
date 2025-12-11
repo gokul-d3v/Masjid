@@ -140,12 +140,4 @@ export const profileService = {
     update: (data: any) => api.put('/profile', data),
 };
 
-export const dataService = {
-    getAll: () => api.get('/data/data'),
-    getById: (id: string) => api.get(`/data/data/${id}`),
-    create: (data: any) => api.post('/data/data', data),
-    update: (id: string, data: any) => api.put(`/data/data/${id}`, data),
-    delete: (id: string) => api.delete(`/data/data/${id}`),
-};
-
 export default api;

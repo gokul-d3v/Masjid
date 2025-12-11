@@ -5,6 +5,7 @@ import { dashboardService } from '../services/api';
 import { RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, Users, DollarSign, IndianRupee, Calendar, TrendingUp } from 'lucide-react-native';
+import { useTheme } from 'react-native-paper';
 
 export default function DashboardScreen() {
     const [stats, setStats] = useState<any>(null);
@@ -34,11 +35,11 @@ export default function DashboardScreen() {
         fetchStats();
     };
 
+    const theme = useTheme();
     if (loading && !refreshing) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' }}>
-                {typeof ActivityIndicator !== 'undefined' ? <ActivityIndicator size="large" color="#3b82f6" /> : null}
-                <Text style={{ marginTop: 8, color: '#9ca3af' }}>Loading dashboard...</Text>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
