@@ -18,10 +18,7 @@ router.put('/:id', authenticateToken, MembersController.update);
 // Update mayyathu fund status
 router.patch('/:id/mayyathu-status', authenticateToken, MembersController.updateMayyathuStatus);
 
-// Delete a member
-router.delete('/:id', authenticateToken, MembersController.delete);
-
-// Public cron job endpoint (no authentication required)
+// Public cron job endpoint (no authentication required) - must be defined before dynamic routes
 router.get('/cron', (req, res) => {
     // Add your cron job logic here as needed
     console.log(`Cron job executed at ${new Date().toISOString()}`);
@@ -32,5 +29,8 @@ router.get('/cron', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
+// Delete a member
+router.delete('/:id', authenticateToken, MembersController.delete);
 
 module.exports = router;
