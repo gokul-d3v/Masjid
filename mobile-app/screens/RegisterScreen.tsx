@@ -1,23 +1,6 @@
 import React, { useState } from 'react';
-import {
-    Box,
-    VStack,
-    Heading,
-    Text,
-    Input,
-    InputField,
-    Button,
-    ButtonText,
-    FormControl,
-    FormControlLabel,
-    FormControlLabelText,
-    FormControlError,
-    FormControlErrorText,
-    Toast,
-    ToastTitle,
-    useToast,
-    ScrollView,
-} from '@gluestack-ui/themed';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
+import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
 import { authService } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,22 +12,18 @@ export default function RegisterScreen() {
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<any>({});
-    const toast = useToast();
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     const validate = () => {
         const newErrors: any = {};
 
         if (!name.trim()) newErrors.name = 'Name is required';
         if (!email.trim()) newErrors.email = 'Email is required';
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Invalid email format';
-
-        if (!password) newErrors.password = 'Password is required';
-        else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-
+        else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email is invalid';
+        if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
         if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-
-        if (phone && !/^\d{10}$/.test(phone)) newErrors.phone = 'Phone must be 10 digits';
+        if (!phone.trim()) newErrors.phone = 'Phone is required';
+        else if (!/^\d{10}$/.test(phone)) newErrors.phone = 'Phone must be 10 digits';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -59,150 +38,182 @@ export default function RegisterScreen() {
                 name,
                 email,
                 password,
-                phone: phone || undefined,
+                phone,
             });
 
-            toast.show({
-                placement: 'top',
-                render: ({ id }: { id: string }) => (
-                    <Toast nativeID={'toast-' + id} action="success" variant="accent">
-                        <ToastTitle>Registration successful! Please login.</ToastTitle>
-                    </Toast>
-                ),
-            });
-
-            navigation.goBack();
+            Alert.alert(
+                'Success', 
+                'Registration successful! Please check your email to verify your account.', 
+                [
+                    { text: 'OK', onPress: () => navigation.navigate('Login') }
+                ]
+            );
         } catch (error: any) {
             console.error(error);
-            toast.show({
-                placement: 'top',
-                render: ({ id }: { id: string }) => (
-                    <Toast nativeID={'toast-' + id} action="error" variant="accent">
-                        <ToastTitle>{error.response?.data?.error || 'Registration failed'}</ToastTitle>
-                    </Toast>
-                ),
-            });
+            Alert.alert('Error', error.response?.data?.error || 'Registration failed');
         } finally {
             setLoading(false);
         }
     };
 
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: '#f9fafb',
+            paddingTop: 80,
+        },
+        content: {
+            flex: 1,
+            paddingHorizontal: 20,
+        },
+        header: {
+            marginBottom: 30,
+            alignItems: 'center',
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: '#1f2937',
+            marginBottom: 8,
+        },
+        subtitle: {
+            fontSize: 16,
+            color: '#6b7280',
+            textAlign: 'center',
+        },
+        inputContainer: {
+            marginBottom: 16,
+        },
+        label: {
+            fontSize: 16,
+            fontWeight: '500',
+            color: '#374151',
+            marginBottom: 8,
+        },
+        input: {
+            borderWidth: 1,
+            borderColor: '#d1d5db',
+            borderRadius: 8,
+            padding: 12,
+            fontSize: 16,
+            backgroundColor: 'white',
+        },
+        errorText: {
+            color: '#ef4444',
+            fontSize: 12,
+            marginTop: 4,
+        },
+        buttonContainer: {
+            marginTop: 20,
+        },
+        loginContainer: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+            marginTop: 20,
+        },
+        loginText: {
+            fontSize: 14,
+            color: '#6b7280',
+        },
+        loginLink: {
+            fontSize: 14,
+            color: '#10b981',
+            fontWeight: '500',
+        },
+    });
+
     return (
-        <Box flex={1} backgroundColor="$white">
-            <ScrollView>
-                <VStack space="lg" p="$6" pt="$16">
-                    <VStack space="sm">
-                        <Heading size="2xl">Create Account</Heading>
-                        <Text color="$coolGray500">Sign up to get started</Text>
-                    </VStack>
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.content}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>Create Account</Text>
+                    <Text style={styles.subtitle}>Register to get started</Text>
+                </View>
 
-                    <FormControl isInvalid={!!errors.name}>
-                        <FormControlLabel>
-                            <FormControlLabelText>Full Name</FormControlLabelText>
-                        </FormControlLabel>
-                        <Input>
-                            <InputField
-                                placeholder="Enter your full name"
-                                value={name}
-                                onChangeText={setName}
-                            />
-                        </Input>
-                        {errors.name && (
-                            <FormControlError>
-                                <FormControlErrorText>{errors.name}</FormControlErrorText>
-                            </FormControlError>
+                <PaperCard style={{ padding: 20 }}>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Full Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Enter your full name"
+                            autoCapitalize="words"
+                        />
+                        {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Email</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Enter your email"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Phone</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={phone}
+                            onChangeText={setPhone}
+                            placeholder="Enter your phone"
+                            keyboardType="phone-pad"
+                        />
+                        {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="Enter your password"
+                            secureTextEntry
+                        />
+                        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Confirm Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            placeholder="Confirm your password"
+                            secureTextEntry
+                        />
+                        {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+                    </View>
+
+                    <PaperButton
+                        style={styles.buttonContainer}
+                        onPress={handleRegister}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                                Sign Up
+                            </Text>
                         )}
-                    </FormControl>
+                    </PaperButton>
+                </PaperCard>
 
-                    <FormControl isInvalid={!!errors.email}>
-                        <FormControlLabel>
-                            <FormControlLabelText>Email</FormControlLabelText>
-                        </FormControlLabel>
-                        <Input>
-                            <InputField
-                                placeholder="Enter your email"
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                            />
-                        </Input>
-                        {errors.email && (
-                            <FormControlError>
-                                <FormControlErrorText>{errors.email}</FormControlErrorText>
-                            </FormControlError>
-                        )}
-                    </FormControl>
-
-                    <FormControl isInvalid={!!errors.phone}>
-                        <FormControlLabel>
-                            <FormControlLabelText>Phone (Optional)</FormControlLabelText>
-                        </FormControlLabel>
-                        <Input>
-                            <InputField
-                                placeholder="10-digit phone number"
-                                value={phone}
-                                onChangeText={setPhone}
-                                keyboardType="phone-pad"
-                                maxLength={10}
-                            />
-                        </Input>
-                        {errors.phone && (
-                            <FormControlError>
-                                <FormControlErrorText>{errors.phone}</FormControlErrorText>
-                            </FormControlError>
-                        )}
-                    </FormControl>
-
-                    <FormControl isInvalid={!!errors.password}>
-                        <FormControlLabel>
-                            <FormControlLabelText>Password</FormControlLabelText>
-                        </FormControlLabel>
-                        <Input>
-                            <InputField
-                                placeholder="At least 6 characters"
-                                value={password}
-                                onChangeText={setPassword}
-                                type="password"
-                                secureTextEntry
-                            />
-                        </Input>
-                        {errors.password && (
-                            <FormControlError>
-                                <FormControlErrorText>{errors.password}</FormControlErrorText>
-                            </FormControlError>
-                        )}
-                    </FormControl>
-
-                    <FormControl isInvalid={!!errors.confirmPassword}>
-                        <FormControlLabel>
-                            <FormControlLabelText>Confirm Password</FormControlLabelText>
-                        </FormControlLabel>
-                        <Input>
-                            <InputField
-                                placeholder="Re-enter password"
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                type="password"
-                                secureTextEntry
-                            />
-                        </Input>
-                        {errors.confirmPassword && (
-                            <FormControlError>
-                                <FormControlErrorText>{errors.confirmPassword}</FormControlErrorText>
-                            </FormControlError>
-                        )}
-                    </FormControl>
-
-                    <Button onPress={handleRegister} isDisabled={loading} mt="$4">
-                        <ButtonText>{loading ? 'Creating Account...' : 'Sign Up'}</ButtonText>
-                    </Button>
-
-                    <Button variant="link" onPress={() => navigation.goBack()}>
-                        <ButtonText>Already have an account? Login</ButtonText>
-                    </Button>
-                </VStack>
+                <View style={styles.loginContainer}>
+                    <Text style={styles.loginText}>Already have an account? </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                        <Text style={styles.loginLink}>Sign in</Text>
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
-        </Box>
+        </View>
     );
 }

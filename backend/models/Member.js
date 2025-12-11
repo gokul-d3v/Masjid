@@ -65,7 +65,7 @@ const memberSchema = new mongoose.Schema({
   familyMembersCount: {
     type: Number,
     required: true,
-    min: 1
+    min: 0
   },
   mayyathuStatus: {
     type: Boolean,

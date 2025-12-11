@@ -36,6 +36,12 @@
         "projectId": "30b52389-77f4-41e0-919a-1baf9e28a509"
       }
     },
-    "owner": "gokul_d3v"
+    "owner": "gokul_d3v",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/30b52389-77f4-41e0-919a-1baf9e28a509"
+    }
   }
 }

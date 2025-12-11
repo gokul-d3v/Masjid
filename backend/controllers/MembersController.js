@@ -120,27 +120,44 @@ class MembersController {
     static async update(req, res) {
         try {
             const { id } = req.params;
-            const {
-                fullName,
-                age,
-                phone,
-                adharNumber,
-                registrationNumber,
-                houseType,
-                familyMembersCount,
-                familyMembers
-            } = req.body;
+            const updateData = req.body;
 
-            const updatedMember = await Member.update(id, {
-                fullName,
-                age,
-                phone,
-                adharNumber,
-                registrationNumber,
-                houseType,
-                familyMembersCount,
-                familyMembers
+            // Sanitize update data to prevent updating fields that should not be updated
+            const allowedUpdates = ['fullName', 'age', 'phone', 'adharNumber', 'houseType', 'familyMembersCount', 'familyMembers', 'mayyathuStatus'];
+            const requestedUpdates = Object.keys(updateData);
+
+            // Filter out disallowed updates to allow only valid ones
+            const filteredUpdateData = {};
+            requestedUpdates.forEach(update => {
+                if (allowedUpdates.includes(update)) {
+                    filteredUpdateData[update] = updateData[update];
+                }
             });
+
+            // Remove registrationNumber from update if it exists to prevent uniqueness constraint errors
+            if (filteredUpdateData.registrationNumber) {
+                delete filteredUpdateData.registrationNumber;
+            }
+
+            // Additional validation for age
+            if (filteredUpdateData.age !== undefined) {
+                const age = parseInt(filteredUpdateData.age);
+                if (isNaN(age) || age < 0 || age > 120) {
+                    return res.status(400).json({ error: 'Age must be between 0 and 120' });
+                }
+                filteredUpdateData.age = age;
+            }
+
+            // Additional validation for familyMembersCount
+            if (filteredUpdateData.familyMembersCount !== undefined) {
+                const count = parseInt(filteredUpdateData.familyMembersCount);
+                if (isNaN(count) || count < 0) {
+                    return res.status(400).json({ error: 'Family members count must be a non-negative number' });
+                }
+                filteredUpdateData.familyMembersCount = count;
+            }
+
+            const updatedMember = await Member.update(id, filteredUpdateData);
 
             if (!updatedMember) {
                 return res.status(404).json({ error: 'Member not found' });

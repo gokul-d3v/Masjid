@@ -1,14 +1,20 @@
 import React from 'react';
-import { GluestackUIProvider, Text, Box } from '@gluestack-ui/themed';
-import { config as defaultConfig } from '@gluestack-ui/config';
+import { Text, View } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import AuthNavigator from './navigation/AuthNavigator';
 // Main App Navigator
 import MainNavigator from './navigation/MainNavigator';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import DataDetailScreen from './screens/DataDetailScreen';
+import UserDetailScreen from './screens/UserDetailScreen';
+import AddCollectionScreen from './screens/AddCollectionScreen';
+import AddMemberScreen from './screens/AddMemberScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,9 +23,9 @@ const AppContent = () => {
 
   if (isLoading) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center">
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Loading...</Text>
-      </Box>
+      </View>
     );
   }
 
@@ -29,7 +35,14 @@ const AppContent = () => {
         {userToken == null ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         ) : (
-          <Stack.Screen name="Main" component={MainNavigator} />
+          <>
+            <Stack.Screen name="Main" component={MainNavigator} options={{ headerShown: false }} />
+            <Stack.Screen name="DataDetail" component={DataDetailScreen} options={{ headerShown: true, title: 'Data Details', headerStyle: { backgroundColor: '#10b981' }, headerTintColor: '#fff' }} />
+            <Stack.Screen name="UserDetail" component={UserDetailScreen} options={{ headerShown: true, title: 'User Details', headerStyle: { backgroundColor: '#10b981' }, headerTintColor: '#fff' }} />
+            <Stack.Screen name="AddCollection" component={AddCollectionScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="AddMember" component={AddMemberScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: true, title: 'Edit Profile', headerStyle: { backgroundColor: '#10b981' }, headerTintColor: '#fff' }} />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
@@ -39,11 +52,13 @@ const AppContent = () => {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <GluestackUIProvider config={defaultConfig}>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </GluestackUIProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <PaperProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </PaperProvider>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }
