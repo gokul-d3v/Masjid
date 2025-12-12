@@ -121,13 +121,7 @@ export default function UserDetailScreen() {
                 <Header
                     title="User Details"
                     subtitle="View user information and settings"
-                    leftComponent={
-                        <TouchableOpacity
-                            onPress={() => navigation.goBack()}
-                        >
-                            <Text style={{ fontSize: 20, color: '#2563eb' }}>←</Text>
-                        </TouchableOpacity>
-                    }
+                    onBackPress={() => navigation.goBack()}
                 />
 
                 <PaperCard style={styles.profileCard}>

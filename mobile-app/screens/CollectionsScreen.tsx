@@ -21,6 +21,10 @@ export default function CollectionsScreen() {
     const [filteredCollections, setFilteredCollections] = useState<any[]>([]); // Store filtered/searched collections
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [perPage] = useState(20); // Number of items per page
     const [showCustomAlert, setShowCustomAlert] = useState(false);
     const [alertConfig, setAlertConfig] = useState({
         title: '',
@@ -64,8 +68,17 @@ export default function CollectionsScreen() {
         }
     };
 
-    const fetchCollections = async () => {
+    const fetchCollections = async (pageNum = 1) => {
         try {
+            // For initial load (page 1), reset collections
+            if (pageNum === 1) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
+            // In a real implementation, the API should support pagination parameters
+            // For now, simulating pagination by getting more data
             const response = await dashboardService.getMoneyCollections();
             let collectionsData = [];
 
@@ -79,8 +92,16 @@ export default function CollectionsScreen() {
                 }
             }
 
+            // For pagination, we'll slice the data based on page and perPage
+            const startIndex = (pageNum - 1) * perPage;
+            const endIndex = startIndex + perPage;
+            const pageData = collectionsData.slice(startIndex, endIndex);
+
+            // Check if there are more items
+            const hasMoreItems = endIndex < collectionsData.length;
+
             // For each collection, determine their payment status and sort by date (latest first)
-            const collectionWithPaymentStatus = collectionsData
+            const collectionWithPaymentStatus = pageData
                 .map((collection: any) => {
                     const paymentStatus = calculatePaymentStatusForCollection(collection);
                     return {
@@ -90,15 +111,42 @@ export default function CollectionsScreen() {
                 })
                 .sort((a: { date: string | number | Date; }, b: { date: string | number | Date; }) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort by date, latest first
 
-            setAllCollections(collectionWithPaymentStatus);
-            applyFilters(collectionWithPaymentStatus); // Apply current filters to the fetched data
+            if (pageNum === 1) {
+                // For first page: replace all collections
+                setAllCollections(collectionWithPaymentStatus);
+                setHasMore(hasMoreItems);
+            } else {
+                // For additional pages: append to existing collections
+                setAllCollections(prev => [...prev, ...collectionWithPaymentStatus]);
+                setHasMore(hasMoreItems);
+            }
+
+            if (pageNum === 1) {
+                applyFilters(collectionWithPaymentStatus); // Apply current filters to the fetched data
+            } else {
+                // When loading more, reapply filters to all collections
+                applyFilters([...allCollections, ...collectionWithPaymentStatus]);
+            }
         } catch (error) {
             console.error('Error fetching collections:', error);
             Alert.alert('Error', 'Failed to load collections');
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (pageNum === 1) {
+                setLoading(false);
+            } else {
+                setLoadingMore(false);
+            }
+            if (pageNum === 1) {
+                setRefreshing(false);
+            }
         }
+    };
+
+    const loadMoreCollections = async () => {
+        if (!hasMore || loadingMore) return; // Prevent multiple simultaneous requests
+        const nextPage = page + 1;
+        setPage(nextPage);
+        await fetchCollections(nextPage);
     };
 
     // Apply search and filter to the collections list
@@ -135,13 +183,20 @@ export default function CollectionsScreen() {
     // Handle search query change
     const handleSearch = (query: string) => {
         setSearchQuery(query);
+        // Reset pagination when search changes
+        if (query !== searchQuery) {
+            setPage(1);
+            fetchCollections(1);
+        }
     };
 
-    // Handle filter selection
+    // Use the existing filter selection function definition
     const handleFilterSelect = (filter: string) => {
         setSelectedFilter(filter);
         setFilterMenuVisible(false);
-        applyFilters(); // Reapply filters with updated filter
+        // Reset pagination when filter changes
+        setPage(1);
+        fetchCollections(1);
     };
 
     useFocusEffect(
@@ -152,7 +207,8 @@ export default function CollectionsScreen() {
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchCollections();
+        setPage(1); // Reset to first page
+        fetchCollections(1);
     };
 
     // Function to show custom alert
@@ -528,7 +584,7 @@ export default function CollectionsScreen() {
                 rightComponent={
                     <TouchableOpacity
                         onPress={() => navigation.navigate('AddCollection', { mode: 'create' })}
-                        style={{ padding: 8 }}
+                        style={{ padding: 8, marginRight: 6 }}  // Reduced margin to move 2px more right
                     >
                         <PlusCircle size={20} color="#10b981" />
                     </TouchableOpacity>
@@ -620,6 +676,15 @@ export default function CollectionsScreen() {
                     keyExtractor={(item) => item._id || item.id}
                     onRefresh={onRefresh}
                     refreshing={refreshing}
+                    onEndReached={loadMoreCollections}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={
+                        loadingMore ? (
+                            <View style={{ padding: 20, alignItems: 'center' }}>
+                                <ActivityIndicator size="large" color="#10b981" />
+                            </View>
+                        ) : null
+                    }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>

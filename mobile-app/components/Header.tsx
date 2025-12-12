@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({
     },
     headerContent: {
       flex: 1,
-      marginRight: rightComponent ? 12 : 0,
+      marginRight: 12,  // Add margin to make space for back button if needed
     },
     headerTitle: {
       fontSize: 24,
@@ -61,35 +61,38 @@ const Header: React.FC<HeaderProps> = ({
       alignItems: 'flex-end',
       justifyContent: 'center',
       alignSelf: 'stretch',
+    },
+    backComponentContainer: {
+      marginLeft: 12,
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      alignSelf: 'stretch',
     }
   });
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {leftComponent ? (
+      {leftComponent && !onBackPress ? ( // Only show left component if there's no back press handler
         <View style={styles.leftComponentContainer}>
           {leftComponent}
         </View>
-      ) : onBackPress ? (
-        <View style={styles.leftComponentContainer}>
-          <PaperButton onPress={onBackPress} mode="text">
-            <Text style={{ fontSize: 16, color: theme.colors.primary }}>Back</Text>
-          </PaperButton>
-        </View>
       ) : null}
-      
+
       <View style={styles.headerContent}>
         <Text style={[styles.headerTitle, titleStyle]}>{title}</Text>
         {subtitle ? (
           <Text style={[styles.headerSubtitle, subtitleStyle]}>{subtitle}</Text>
         ) : null}
       </View>
-      
-      {rightComponent && (
-        <View style={styles.rightComponentContainer}>
-          {rightComponent}
-        </View>
-      )}
+
+      <View style={styles.rightComponentContainer}>
+        {rightComponent}
+        {onBackPress && ( // Show back button in right side when onBackPress is provided
+          <PaperButton onPress={onBackPress} mode="text">
+            <Text style={{ fontSize: 16, color: theme.colors.primary }}>Back</Text>
+          </PaperButton>
+        )}
+      </View>
     </View>
   );
 };

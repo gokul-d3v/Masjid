@@ -388,8 +388,8 @@ export default function MembersListScreen() {
             paddingVertical: 8,
         },
         memberName: {
-            fontSize: 20,
-            fontWeight: '700',
+            fontSize: 16,
+            fontWeight: 'bold',
             color: '#000000',
         },
         memberPhone: {
@@ -432,6 +432,10 @@ export default function MembersListScreen() {
     const [filteredMembers, setFilteredMembers] = useState<any[]>([]); // Store filtered/searched members
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [perPage] = useState(20); // Number of items per page
     const [showCustomAlert, setShowCustomAlert] = useState(false);
     const [alertConfig, setAlertConfig] = useState({
         title: '',
@@ -468,8 +472,15 @@ export default function MembersListScreen() {
         };
     }, []);
 
-    const fetchMembers = async () => {
+    const fetchMembers = async (pageNum = 1) => {
         try {
+            // For initial load (page 1), reset collections
+            if (pageNum === 1) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
             const response = await memberService.getAll();
             let membersData = [];
 
@@ -481,9 +492,17 @@ export default function MembersListScreen() {
                 }
             }
 
+            // For pagination, we'll slice the data based on page and perPage
+            const startIndex = (pageNum - 1) * perPage;
+            const endIndex = startIndex + perPage;
+            const pageData = membersData.slice(startIndex, endIndex);
+
+            // Check if there are more items
+            const hasMoreItems = endIndex < membersData.length;
+
             // For each member, determine their payment status based on collections
             const membersWithPaymentStatus = await Promise.all(
-                membersData.map(async (member: any) => {
+                pageData.map(async (member: any) => {
                     const paymentStatus = await calculatePaymentStatus(member);
                     return {
                         ...member,
@@ -492,20 +511,59 @@ export default function MembersListScreen() {
                 })
             );
 
-            setAllMembers(membersWithPaymentStatus);
-            applyFilters(membersWithPaymentStatus); // Apply current filters to the fetched data
+            if (pageNum === 1) {
+                // For first page: replace all members
+                setAllMembers(membersWithPaymentStatus);
+                setHasMore(hasMoreItems);
+            } else {
+                // For additional pages: append to existing members
+                setAllMembers(prev => [...prev, ...membersWithPaymentStatus]);
+                setHasMore(hasMoreItems);
+            }
+
+            // Apply filters to the appropriate dataset
+            if (pageNum === 1) {
+                applyFilters(membersWithPaymentStatus); // Apply current filters to the fetched data
+            } else {
+                // When loading more, reapply filters to all members
+                applyFilters([...allMembers, ...membersWithPaymentStatus]);
+            }
         } catch (error) {
             console.error('Error fetching members:', error);
             Alert.alert('Error', 'Failed to load members');
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (pageNum === 1) {
+                setLoading(false);
+            } else {
+                setLoadingMore(false);
+            }
+            if (pageNum === 1) {
+                setRefreshing(false);
+            }
         }
+    };
+
+    const loadMoreMembers = async () => {
+        if (!hasMore || loadingMore) return; // Prevent multiple simultaneous requests
+        const nextPage = page + 1;
+        setPage(nextPage);
+        await fetchMembers(nextPage);
     };
 
     // Handle search query change
     const handleSearch = (query: string) => {
         setSearchQuery(query);
+        // Reset pagination when search changes
+        if (query !== searchQuery) {
+            setPage(1);
+            fetchMembers(1);
+        }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        setPage(1); // Reset to first page
+        fetchMembers(1);
     };
 
     // Apply search and filter to the members list
@@ -536,6 +594,15 @@ export default function MembersListScreen() {
         setFilteredMembers(filtered);
     };
 
+    // Handle filter selection
+    const handleFilterSelect = (filter: string) => {
+        setSelectedFilter(filter);
+        setFilterMenuVisible(false);
+        // Reset pagination when filter changes
+        setPage(1);
+        fetchMembers(1);
+    };
+
 
     // Function to show custom alert
     const showAlert = (
@@ -548,11 +615,6 @@ export default function MembersListScreen() {
         setAlertVisible(true);
     };
 
-    // Handle filter selection
-    const handleFilterSelect = (filter: string) => {
-        setSelectedFilter(filter);
-        setFilterMenuVisible(false);
-    };
 
     // Function to calculate payment status based on collection data
     const calculatePaymentStatus = async (member: any) => {
@@ -613,14 +675,10 @@ export default function MembersListScreen() {
 
     useFocusEffect(
         React.useCallback(() => {
-            fetchMembers();
+            setPage(1); // Reset to first page
+            fetchMembers(1);
         }, [])
     );
-
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchMembers();
-    };
 
     const deleteMember = async (id: string) => {
         try {
@@ -826,7 +884,7 @@ export default function MembersListScreen() {
                 rightComponent={
                     <TouchableOpacity
                         onPress={() => navigation.navigate('AddMember', { mode: 'create' })}
-                        style={{ padding: 8 }}
+                        style={{ padding: 8, marginRight: 6 }}  // Reduced margin to move 2px more right
                     >
                         <User size={20} color="#10b981" />
                     </TouchableOpacity>
@@ -920,6 +978,15 @@ export default function MembersListScreen() {
                     keyExtractor={(item) => item._id || item.id}
                     onRefresh={onRefresh}
                     refreshing={refreshing}
+                    onEndReached={loadMoreMembers}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={
+                        loadingMore ? (
+                            <View style={{ padding: 20, alignItems: 'center' }}>
+                                <ActivityIndicator size="large" color="#10b981" />
+                            </View>
+                        ) : null
+                    }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>

@@ -434,15 +434,7 @@ export default function AddCollectionScreen() {
                         <Header
                             title="Add New Collection"
                             subtitle="Enter collection details below"
-                            leftComponent={
-                                <PaperButton
-                                    onPress={() => navigation.goBack()}
-                                    mode="text"
-                                    style={{ marginLeft: -8 }}
-                                >
-                                    <ArrowLeft size={20} color="#2563eb" />
-                                </PaperButton>
-                            }
+                            onBackPress={() => navigation.goBack()}
                         />
 
                         <PaperCard style={styles.card}>
@@ -532,7 +524,7 @@ export default function AddCollectionScreen() {
                                 underlineColor="transparent"
                                 activeUnderlineColor="transparent"
                                 left={<PaperInput.Icon icon={() => <Calendar size={20} color="#6b7280" />} />}
-                                placeholder="YYYY-MM-DD"
+                                placeholder="DD-MM-YYYY"
                             />
 
                             <PaperInput

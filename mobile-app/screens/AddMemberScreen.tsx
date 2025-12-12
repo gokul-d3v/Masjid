@@ -701,15 +701,7 @@ export default function AddMemberScreen() {
                         <Header
                             title={mode === 'create' ? "Add New Member" : mode === 'edit' ? "Edit Member" : "View Member"}
                             subtitle="Enter member details below"
-                            leftComponent={
-                                <PaperButton
-                                    onPress={() => navigation.goBack()}
-                                    mode="text"
-                                    style={{ marginLeft: -8 }}
-                                >
-                                    <ArrowLeft size={20} color="#2563eb" />
-                                </PaperButton>
-                            }
+                            onBackPress={() => navigation.goBack()}
                         />
 
                         <PaperCard style={styles.card}>
