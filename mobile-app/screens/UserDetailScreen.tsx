@@ -5,10 +5,14 @@ import { userService } from '../services/api';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { User, Mail, Phone, Calendar, MapPin } from 'lucide-react-native';
 import { useTheme } from 'react-native-paper';
+import Header from '../components/Header';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function UserDetailScreen() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const insets = useSafeAreaInsets();
     const [phone, setPhone] = useState('');
     const [joinDate, setJoinDate] = useState('');
     const [address, setAddress] = useState('');
@@ -41,34 +45,22 @@ export default function UserDetailScreen() {
     };
 
     const handleEdit = () => {
-        navigation.navigate('EditProfile', { userId: route.params?.userId });
+        Alert.alert('Notice', 'Edit profile functionality is not available');
     };
 
     const styles = StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: '#f9fafb',
-            paddingTop: 40,
+            paddingTop: 0,
         },
         content: {
             padding: 16,
         },
-        header: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 20,
-        },
-        backButton: {
-            marginRight: 10,
-        },
-        title: {
-            fontSize: 20,
-            fontWeight: 'bold',
-            color: '#1f2937',
-        },
         profileCard: {
             padding: 20,
             marginBottom: 20,
+            backgroundColor: 'white',
         },
         avatarContainer: {
             width: 80,
@@ -124,17 +116,19 @@ export default function UserDetailScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <ScrollView contentContainerStyle={styles.content}>
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Text style={{ fontSize: 20, color: '#059669' }}>←</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.title}>User Details</Text>
-                </View>
+                <Header
+                    title="User Details"
+                    subtitle="View user information and settings"
+                    leftComponent={
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Text style={{ fontSize: 20, color: '#2563eb' }}>←</Text>
+                        </TouchableOpacity>
+                    }
+                />
 
                 <PaperCard style={styles.profileCard}>
                     <View style={styles.avatarContainer}>

@@ -4,10 +4,14 @@ import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'rea
 import { authService } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
+import Header from '../components/Header';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const insets = useSafeAreaInsets();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [phone, setPhone] = useState('');
@@ -43,8 +47,8 @@ export default function RegisterScreen() {
             });
 
             Alert.alert(
-                'Success', 
-                'Registration successful! Please check your email to verify your account.', 
+                'Success',
+                'Registration successful! Please check your email to verify your account.',
                 [
                     { text: 'OK', onPress: () => navigation.navigate('Login') }
                 ]
@@ -61,26 +65,12 @@ export default function RegisterScreen() {
         container: {
             flex: 1,
             backgroundColor: '#f9fafb',
-            paddingTop: 80,
+            paddingTop: 0,
         },
         content: {
             flex: 1,
             paddingHorizontal: 20,
-        },
-        header: {
-            marginBottom: 30,
-            alignItems: 'center',
-        },
-        title: {
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: 8,
-        },
-        subtitle: {
-            fontSize: 16,
-            color: '#6b7280',
-            textAlign: 'center',
+            paddingTop: 10,
         },
         inputContainer: {
             marginBottom: 16,
@@ -124,14 +114,14 @@ export default function RegisterScreen() {
     });
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <ScrollView contentContainerStyle={styles.content}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>Create Account</Text>
-                    <Text style={styles.subtitle}>Register to get started</Text>
-                </View>
+                <Header
+                    title="Create Account"
+                    subtitle="Register to get started"
+                />
 
-                <PaperCard style={{ padding: 20 }}>
+                <PaperCard style={{ padding: 20, backgroundColor: 'white' }}>
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Full Name</Text>
                         <TextInput

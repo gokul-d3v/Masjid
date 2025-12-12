@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isTokenExpired } from '../utils/tokenUtils';
 
 // API Configuration
 // Using backend server for all environments
@@ -12,11 +13,23 @@ const api = axios.create({
     },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and check for expiration
 api.interceptors.request.use(
     async (config: any) => {
         const token = await AsyncStorage.getItem('token');
+
         if (token) {
+            // Check if token is expired before adding it to the request
+            if (isTokenExpired(token)) {
+                // Token is expired, remove it and logout user
+                await AsyncStorage.removeItem('token');
+                await AsyncStorage.removeItem('user');
+                // In a real app, you'd likely want to navigate to login here
+                // For now, we'll just remove the token
+                console.log('Token expired, user logged out automatically');
+                return config; // Return config without auth header
+            }
+
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -51,20 +64,26 @@ export const dashboardService = {
     getRecentActivities: () => api.get('/dashboard/recent-activities'),
     getMoneyCollections: () => api.get('/dashboard/money-collection'),
     addMoneyCollection: (data: any) => {
-        // Ensure amount is properly formatted as a number
+        // Ensure amount is properly formatted as a number and use correct field names
         const formattedData = {
-            ...data,
             amount: parseFloat(data.amount) || 0,
-            // Ensure required collectedBy field is present
-            collectedBy: data.collectedBy || data.collected_by || 'Admin'
+            description: data.description || `${data.category || 'collection'} collection`,
+            category: data.category || 'general',
+            collectedBy: data.collectedBy || data.collected_by || 'Admin',
+            date: data.date || new Date().toISOString(),
+            receiptNumber: data.receiptNumber || `REC${Date.now()}`
         };
         return api.post('/dashboard/money-collection', formattedData);
     },
     updateMoneyCollection: (id: string, data: any) => {
-        // Ensure amount is properly formatted as a number
+        // Ensure amount is properly formatted as a number and use correct field names
         const formattedData = {
-            ...data,
-            amount: parseFloat(data.amount) || 0
+            amount: parseFloat(data.amount) || 0,
+            description: data.description,
+            category: data.category,
+            collectedBy: data.collectedBy || data.collected_by,
+            date: data.date,
+            receiptNumber: data.receiptNumber
         };
         return api.put(`/dashboard/money-collection/${id}`, formattedData);
     },

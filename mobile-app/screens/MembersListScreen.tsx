@@ -1,47 +1,78 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { FlatList, Text, View, TouchableOpacity, StyleSheet, Alert, RefreshControl, Modal } from 'react-native';
+import { FlatList, Text, View, TouchableOpacity, StyleSheet, Alert, RefreshControl, Modal, TextInput, ScrollView } from 'react-native';
 import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
-import { memberService } from '../services/api';
+import { memberService, dashboardService } from '../services/api';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, Heart, Trash2, Pencil, DollarSign, User, Mail, Phone, Calendar, MapPin, X } from 'lucide-react-native';
+import { User, DollarSign, Calendar, CheckCircle, XCircle, AlertTriangle, Info, PlusCircle, IndianRupee, Filter, Search } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import { useTheme } from 'react-native-paper';
+import AlertBox from '../components/AlertBox';
+import Header from '../components/Header';
 
 export default function MembersListScreen() {
     const insets = useSafeAreaInsets();
+
+    // State for search and filtering
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState('all'); // 'all', 'paid', 'due', 'overdue'
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
 
     const styles = StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: '#f9fafb',
-            paddingTop: insets.top + 10,
-        },
-        header: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            paddingVertical: 16,
-            backgroundColor: 'white',
-        },
-        title: {
-            fontSize: 20,
-            fontWeight: 'bold',
-            color: '#1f2937',
-        },
-        addButton: {
-            backgroundColor: '#10b981',
-            padding: 10,
-            borderRadius: 20,
-        },
-        addButtonText: {
-            color: 'white',
-            fontWeight: 'bold',
+            paddingTop: 0, // Safe area will be handled by the wrapper View
         },
         content: {
             flex: 1,
+            padding: 15,
+            paddingTop: 8, // Keep some padding below the header
+        },
+        addButton: {
+            padding: 4,
+            borderRadius: 20,
+        },
+        searchContainer: {
+            marginHorizontal: 16,
+            marginBottom: 10,
+        },
+        modalBackdrop: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-end',
+        },
+        modalContainer: {
+            marginTop: 100, // Position below the search bar
+            marginRight: 16,
+            width: 150,
+        },
+        filterModalContent: {
+            backgroundColor: 'white',
+            borderRadius: 8,
+            padding: 8,
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+        },
+        modalItem: {
+            paddingVertical: 12,
             paddingHorizontal: 16,
+            borderRadius: 4,
+        },
+        selectedFilter: {
+            backgroundColor: '#f0f9ff',
+        },
+        modalItemText: {
+            fontSize: 16,
+            color: '#1f2937',
+        },
+        content: {
+            flex: 1,
+            padding: 15,
         },
         centerContent: {
             justifyContent: 'center',
@@ -58,12 +89,10 @@ export default function MembersListScreen() {
             backgroundColor: 'white',
             padding: 16,
             marginVertical: 4,
+            marginHorizontal: 16,
             borderRadius: 8,
             elevation: 2,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.1,
-            shadowRadius: 2,
+            boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)',
         },
         memberInfo: {
             flexDirection: 'row',
@@ -91,201 +120,68 @@ export default function MembersListScreen() {
             fontSize: 16,
             fontWeight: 'bold',
             color: '#1f2937',
+            marginBottom: 4,
         },
-        memberPhone: {
-            fontSize: 14,
-            color: '#6b7280',
-            marginTop: 2,
-        },
-        memberId: {
-            fontSize: 12,
-            color: '#9ca3af',
-            marginTop: 2,
-        },
-        memberInfoContainer: {
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        },
-        memberStats: {
+        memberStatus: {
             flexDirection: 'row',
             alignItems: 'center',
-        },
-        familyMembersCount: {
-            fontSize: 14,
-            color: '#6b7280',
-            marginRight: 8,
-        },
-        actionButtons: {
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-            marginTop: 8,
-            paddingTop: 8,
-            borderTopWidth: 1,
-            borderTopColor: '#e5e7eb',
-        },
-        actionButton: {
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: 8,
-        },
-        editButton: {
-            backgroundColor: '#3b82f6',
-        },
-        deleteButton: {
-            backgroundColor: '#ef4444',
-        },
-        swipeableAction: {
-            height: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: 16,
-            marginVertical: 4,
-        },
-        deleteAction: {
-            backgroundColor: '#ef4444',
-            width: 80,
-            margin: 4,
-            borderRadius: 8,
-            marginLeft: 4,
-        },
-        mayyathuAction: {
-            backgroundColor: '#10b981',
-            width: 100,
-            margin: 4,
-            borderRadius: 8,
-            marginRight: 4,
-        },
-        removeMayyathuAction: {
-            backgroundColor: '#f59e0b', // amber color for removal
-            width: 100,
-            margin: 4,
-            borderRadius: 8,
-            marginRight: 4,
-        },
-        actionText: {
-            color: 'white',
-            fontSize: 12,
-            fontWeight: 'bold',
+            gap: 8,
             marginTop: 4,
         },
-        mayyathuBadge: {
-            backgroundColor: '#d1fae5', // light green background
-            borderRadius: 12,
-            padding: 4,
+        fundStatusBadge: {
+            flexDirection: 'row',
             alignItems: 'center',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
         },
-        mayyathuText: {
-            fontSize: 10,
-            color: '#065f46', // dark green
-            fontWeight: 'bold',
-            marginTop: 2,
-        },
-        regularText: {
-            fontSize: 10,
-            color: '#7f1d1d', // dark red
-            fontWeight: 'bold',
-            marginTop: 2,
+        mayyathuBadge: {
+            backgroundColor: '#d1fae5', // light green
         },
         regularBadge: {
-            backgroundColor: '#fee2e2', // light red background
-            borderRadius: 12,
-            padding: 4,
-            alignItems: 'center',
+            backgroundColor: '#dbeafe', // light blue
         },
-        modalOverlay: {
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 20,
-        },
-        modalContent: {
-            backgroundColor: 'white',
-            borderRadius: 12,
-            width: '100%',
-            maxWidth: 500,
-            maxHeight: '80%',
-            overflow: 'hidden',
-        },
-        modalLoadingContainer: {
-            padding: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        modalHeader: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: '#e5e7eb',
-        },
-        modalTitle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#1f2937',
-        },
-        closeButton: {
-            padding: 4,
-        },
-        modalBody: {
-            padding: 16,
-            flex: 1,
-        },
-        detailRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingVertical: 8,
-        },
-        detailTextContainer: {
-            marginLeft: 12,
-            flex: 1,
-        },
-        detailLabel: {
-            fontSize: 14,
-            color: '#6b7280',
+        fundStatusText: {
+            fontSize: 12,
             fontWeight: '500',
         },
-        detailValue: {
-            fontSize: 16,
-            color: '#1f2937',
-            marginTop: 2,
-        },
-        mayyathuStatusText: {
+        mayyathuTextColor: {
             color: '#065f46', // dark green
-            fontWeight: 'bold',
         },
-        regularStatusText: {
-            color: '#7f1d1d', // dark red
-            fontWeight: 'bold',
+        regularTextColor: {
+            color: '#1e40af', // dark blue
         },
-        modalActions: {
+        mayyathuText: {
+            color: '#065f46', // dark green
+        },
+        regularText: {
+            color: '#1e40af', // dark blue
+        },
+        paymentStatus: {
+            fontSize: 12,
+            fontWeight: '500',
+        },
+        paymentDue: {
+            color: '#d97706', // yellow-600
+        },
+        paymentPaid: {
+            color: '#065f46', // green-700
+        },
+        paymentOverdue: {
+            color: '#dc2626', // red-600
+        },
+        addCollectionButton: {
+            marginLeft: 8,
+            padding: 4,
+            alignSelf: 'center',
+        },
+        statusContainer: {
             flexDirection: 'row',
-            justifyContent: 'space-between',
-            padding: 16,
-            borderTopWidth: 1,
-            borderTopColor: '#e5e7eb',
+            gap: 8,
         },
-        modalCloseButton: {
-            marginLeft: 8,
-        },
-        editButton: {
-            flex: 1,
-            backgroundColor: '#3b82f6', // blue-500
-        },
-        deleteButton: {
-            flex: 1,
-            backgroundColor: '#ef4444', // red-500
-            marginLeft: 8,
-        },
-        buttonText: {
-            color: 'white',
-            fontWeight: 'bold',
+        statusContainerVertical: {
+            flexDirection: 'column',
+            gap: 8,
         },
         emptyContainer: {
             flex: 1,
@@ -298,7 +194,53 @@ export default function MembersListScreen() {
             color: '#6b7280',
             textAlign: 'center',
         },
-        customAlert: {
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+        },
+        alertModalContent: {
+            backgroundColor: 'white',
+            borderRadius: 12,
+            width: '100%',
+            maxWidth: 500,
+            maxHeight: '80%',
+            overflow: 'hidden',
+        },
+        modalLoadingContainer: {
+            padding: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        modalLoadingText: {
+            marginTop: 10,
+            color: '#6b7280',
+        },
+        swipeableAction: {
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            marginVertical: 4,
+        },
+        deleteAction: {
+            width: 80,
+            margin: 4,
+            marginLeft: 4,
+        },
+        removeMayyathuAction: {
+            width: 100,
+            margin: 4,
+            marginRight: 4,
+        },
+        mayyathuAction: {
+            width: 100,
+            margin: 4,
+            marginRight: 4,
+        },
+        alertOverlay: {
             position: 'absolute',
             top: 0,
             left: 0,
@@ -307,66 +249,213 @@ export default function MembersListScreen() {
             backgroundColor: 'rgba(0,0,0,0.5)',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 9999,
+            zIndex: 10000,
         },
-        alertContent: {
+        alertContainer: {
             backgroundColor: 'white',
-            padding: 20,
             borderRadius: 8,
+            padding: 20,
             width: '80%',
+            maxWidth: 400,
+            maxHeight: '80%',
+        },
+        alertHeader: {
+            flexDirection: 'row',
             alignItems: 'center',
+            marginBottom: 15,
+        },
+        alertIcon: {
+            marginRight: 10,
         },
         alertTitle: {
             fontSize: 18,
             fontWeight: 'bold',
-            marginBottom: 10,
-            textAlign: 'center',
+            color: '#374151',
         },
         alertMessage: {
-            fontSize: 16,
-            color: '#6b7280',
+            fontSize: 14,
+            color: '#4b5563',
             marginBottom: 20,
-            textAlign: 'center',
+            lineHeight: 20,
         },
         alertButtonContainer: {
             flexDirection: 'row',
-            justifyContent: 'space-between',
-            width: '100%',
+            justifyContent: 'flex-end',
+            gap: 10,
         },
         alertButton: {
-            flex: 1,
-            padding: 10,
+            paddingVertical: 8,
+            paddingHorizontal: 16,
             borderRadius: 4,
-            marginHorizontal: 5,
-            alignItems: 'center',
         },
-        cancelButton: {
-            backgroundColor: '#d1d5db',
+        alertButtonPrimary: {
+            backgroundColor: '#059669', // emerald-600
         },
-        confirmButton: {
-            backgroundColor: '#10b981',
+        alertButtonSecondary: {
+            backgroundColor: '#d1d5db', // gray-300
         },
         alertButtonText: {
             color: 'white',
             fontWeight: 'bold',
         },
+        alertButtonSecondaryText: {
+            color: '#374151',
+        },
+        memberDetailModal: {
+            backgroundColor: 'white',
+            margin: 20,
+            borderRadius: 12,
+            maxHeight: '80%',
+            elevation: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+        },
+        memberDetailHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: 20,
+            borderBottomWidth: 1,
+            borderBottomColor: '#f3f4f6',
+        },
+        memberDetailTitle: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: '#000000',
+        },
+        memberDetailCloseButton: {
+            padding: 8,
+            borderRadius: 20,
+            backgroundColor: '#f9fafb',
+        },
+        memberDetailContent: {
+            padding: 20,
+        },
+        detailRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            marginBottom: 16,
+            paddingVertical: 8,
+        },
+        detailLabel: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: '#6b7280',
+            minWidth: 120,
+            paddingRight: 12,
+        },
+        detailValue: {
+            fontSize: 14,
+            color: '#1f2937',
+            flex: 1,
+            lineHeight: 20,
+        },
+        modalButtons: {
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            gap: 12,
+            padding: 20,
+            borderTopWidth: 1,
+            borderTopColor: '#f3f4f6',
+        },
+        modalButton: {
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            borderRadius: 8,
+            minWidth: 90,
+            alignItems: 'center',
+        },
+        memberAvatar: {
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            backgroundColor: '#10b981',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 16,
+        },
+        avatarText: {
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+        },
+        memberHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 20,
+            paddingVertical: 8,
+        },
+        memberName: {
+            fontSize: 20,
+            fontWeight: '700',
+            color: '#000000',
+        },
+        memberPhone: {
+            fontSize: 14,
+            color: '#6b7280',
+            marginTop: 4,
+        },
+        sectionTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: '#000000',
+            marginBottom: 12,
+            marginTop: 16,
+            paddingBottom: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: '#f3f4f6',
+        },
+        familyMemberRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            marginBottom: 8,
+            marginHorizontal: 8,
+        },
+        modalButton: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 4,
+        },
+        actionButton: {
+            padding: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
     });
 
-    const [members, setMembers] = useState<any[]>([]);
+    const [allMembers, setAllMembers] = useState<any[]>([]); // Store all members
+    const [filteredMembers, setFilteredMembers] = useState<any[]>([]); // Store filtered/searched members
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showCustomAlert, setShowCustomAlert] = useState(false);
     const [alertConfig, setAlertConfig] = useState({
         title: '',
         message: '',
-        onConfirm: () => {},
-        onCancel: () => {},
+        onConfirm: () => { },
+        onCancel: () => { },
         confirmText: 'Confirm',
         cancelText: 'Cancel'
     });
-    const [showMemberModal, setShowMemberModal] = useState(false);
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertProps, setAlertProps] = useState<{
+        title: string;
+        message: string;
+        type: 'success' | 'error' | 'warning' | 'info';
+        buttons: { text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }[];
+    }>({
+        title: '',
+        message: '',
+        type: 'info',
+        buttons: [{ text: 'OK' }]
+    });
+    const [memberDetailModalVisible, setMemberDetailModalVisible] = useState(false);
     const [selectedMember, setSelectedMember] = useState<any>(null);
-    const [memberDetailLoading, setMemberDetailLoading] = useState(false);
+
     const navigation = useNavigation<any>();
     const swipeableRefs = useRef<Record<string, Swipeable | null>>({});
 
@@ -378,128 +467,6 @@ export default function MembersListScreen() {
             });
         };
     }, []);
-
-    const showMemberDetails = async (id: string) => {
-        try {
-            setMemberDetailLoading(true);
-            // Fetch member details by ID
-            const response = await memberService.getById(id);
-            setSelectedMember(response.data);
-            setShowMemberModal(true);
-        } catch (error) {
-            console.error('Error fetching member details:', error);
-            // If API call fails, try to find member in the current list
-            const member = members.find(m => m._id === id || m.id === id);
-            if (member) {
-                setSelectedMember(member);
-                setShowMemberModal(true);
-            } else {
-                Alert.alert('Error', 'Failed to load member details');
-            }
-        } finally {
-            setMemberDetailLoading(false);
-        }
-    };
-
-    const closeSwipeable = (id: string) => {
-        const swipeable = swipeableRefs.current[id];
-        if (swipeable && typeof swipeable.close === 'function') {
-            swipeable.close();
-        }
-    };
-
-    const deleteMember = async (id: string) => {
-        try {
-            await memberService.delete(id);
-            fetchMembers(); // Refresh the list
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to delete member');
-        }
-    };
-
-    const toggleMayyathuFund = async (id: string, name: string, isMayyathu: boolean) => {
-        setAlertConfig({
-            title: isMayyathu ? 'Remove from Mayyathu Fund' : 'Add to Mayyathu Fund',
-            message: isMayyathu
-                ? `Are you sure you want to remove ${name} from the Mayyathu Fund?`
-                : `Are you sure you want to add ${name} to the Mayyathu Fund?`,
-            onConfirm: () => updateMayyathuStatus(id, name, !isMayyathu),
-            onCancel: () => {},
-            confirmText: isMayyathu ? 'Remove' : 'Add',
-            cancelText: 'Cancel'
-        });
-        setShowCustomAlert(true);
-    };
-
-    const updateMayyathuStatus = async (id: string, name: string, status: boolean) => {
-        try {
-            await memberService.updateMayyathuStatus(id, status);
-
-            // Update the specific member in the state directly for immediate UI feedback
-            setMembers(prevMembers =>
-                prevMembers.map(member =>
-                    member._id === id || member.id === id
-                        ? { ...member, mayyathuStatus: status }
-                        : member
-                )
-            );
-
-            Alert.alert('Success', status
-                ? `${name} has been added to Mayyathu Fund!`
-                : `${name} has been removed from Mayyathu Fund!`);
-
-            // Optionally, fetch all members again after a brief delay to ensure consistency
-            setTimeout(() => {
-                fetchMembers();
-            }, 1000); // Refresh after 1 second to ensure backend consistency
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', status
-                ? 'Failed to add member to Mayyathu Fund'
-                : 'Failed to remove member from Mayyathu Fund');
-            // If update fails, refresh the list to revert any optimistic updates
-            fetchMembers();
-        }
-    };
-
-    const confirmDelete = (id: string, name: string) => {
-        setAlertConfig({
-            title: 'Delete Member',
-            message: `Are you sure you want to delete ${name}?`,
-            onConfirm: () => deleteMember(id),
-            onCancel: () => {},
-            confirmText: 'Delete',
-            cancelText: 'Cancel'
-        });
-        setShowCustomAlert(true);
-    };
-
-    const renderLeftSwipeActions = (id: string, name: string) => (
-        <TouchableOpacity
-            style={[styles.swipeableAction, styles.deleteAction]}
-            onPress={() => {
-                confirmDelete(id, name);
-                closeSwipeable(id);
-            }}
-        >
-            <Trash2 size={24} color="#FFFFFF" />
-            <Text style={styles.actionText}>Delete</Text>
-        </TouchableOpacity>
-    );
-
-    const renderRightSwipeActions = (id: string, name: string, isMayyathu: boolean) => (
-        <TouchableOpacity
-            style={[styles.swipeableAction, isMayyathu ? styles.removeMayyathuAction : styles.mayyathuAction]}
-            onPress={() => {
-                toggleMayyathuFund(id, name, isMayyathu);
-                closeSwipeable(id);
-            }}
-        >
-            <DollarSign size={24} color="#FFFFFF" />
-            <Text style={styles.actionText}>{isMayyathu ? "Remove" : "Add"}</Text>
-        </TouchableOpacity>
-    );
 
     const fetchMembers = async () => {
         try {
@@ -514,7 +481,19 @@ export default function MembersListScreen() {
                 }
             }
 
-            setMembers(membersData);
+            // For each member, determine their payment status based on collections
+            const membersWithPaymentStatus = await Promise.all(
+                membersData.map(async (member: any) => {
+                    const paymentStatus = await calculatePaymentStatus(member);
+                    return {
+                        ...member,
+                        paymentStatus
+                    };
+                })
+            );
+
+            setAllMembers(membersWithPaymentStatus);
+            applyFilters(membersWithPaymentStatus); // Apply current filters to the fetched data
         } catch (error) {
             console.error('Error fetching members:', error);
             Alert.alert('Error', 'Failed to load members');
@@ -523,6 +502,114 @@ export default function MembersListScreen() {
             setRefreshing(false);
         }
     };
+
+    // Handle search query change
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+    };
+
+    // Apply search and filter to the members list
+    const applyFilters = (membersList = allMembers) => {
+        let filtered = [...membersList];
+
+        // Apply search filter
+        if (searchQuery) {
+            filtered = filtered.filter(member =>
+                member.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                member.phone.includes(searchQuery) ||
+                (member.adharNumber && member.adharNumber.includes(searchQuery)) ||
+                (member.registrationNumber && member.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase()))
+            );
+        }
+
+        // Apply payment status filter
+        if (selectedFilter !== 'all') {
+            if (selectedFilter === 'paid') {
+                filtered = filtered.filter(member => member.paymentStatus === 'paid');
+            } else if (selectedFilter === 'due') {
+                filtered = filtered.filter(member => member.paymentStatus === 'due');
+            } else if (selectedFilter === 'overdue') {
+                filtered = filtered.filter(member => member.paymentStatus === 'overdue');
+            }
+        }
+
+        setFilteredMembers(filtered);
+    };
+
+
+    // Function to show custom alert
+    const showAlert = (
+        title: string,
+        message: string,
+        type: 'success' | 'error' | 'warning' | 'info' = 'info',
+        buttons: Array<{ text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }> = [{ text: 'OK' }]
+    ) => {
+        setAlertProps({ title, message, type, buttons });
+        setAlertVisible(true);
+    };
+
+    // Handle filter selection
+    const handleFilterSelect = (filter: string) => {
+        setSelectedFilter(filter);
+        setFilterMenuVisible(false);
+    };
+
+    // Function to calculate payment status based on collection data
+    const calculatePaymentStatus = async (member: any) => {
+        try {
+            // Fetch all collections to determine payment status
+            const collectionsResponse = await dashboardService.getMoneyCollections();
+            let collections = [];
+
+            if (collectionsResponse && collectionsResponse.data) {
+                if (Array.isArray(collectionsResponse.data)) {
+                    collections = collectionsResponse.data;
+                } else if (collectionsResponse.data.moneyCollections && Array.isArray(collectionsResponse.data.moneyCollections)) {
+                    collections = collectionsResponse.data.moneyCollections;
+                } else if (collectionsResponse.data.collections && Array.isArray(collectionsResponse.data.collections)) {
+                    collections = collectionsResponse.data.collections;
+                }
+            }
+
+            // Filter collections for this specific member (based on name or collectedBy)
+            const memberCollections = collections.filter((collection: any) =>
+                collection.collectedBy?.toLowerCase().includes(member.fullName?.toLowerCase() || '') ||
+                collection.description?.toLowerCase().includes(member.fullName?.toLowerCase() || '')
+            );
+
+            if (memberCollections.length === 0) {
+                return 'due'; // No collections for this member
+            }
+
+            // Get the most recent collection date
+            const sortedCollections = memberCollections.sort((a: any, b: any) =>
+                new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+
+            const latestCollection = sortedCollections[0];
+            const latestCollectionDate = new Date(latestCollection.date);
+
+            // Calculate time difference in days
+            const today = new Date();
+            const timeDiff = today.getTime() - latestCollectionDate.getTime();
+            const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+            // Determine status based on days since last payment
+            if (daysDiff > 30) {
+                return 'overdue';
+            } else {
+                return 'paid';
+            }
+        } catch (error) {
+            console.error('Error calculating payment status for member:', error);
+            return 'due'; // Default to due if there's an error
+        }
+    };
+
+    // Effect to apply filters when searchQuery or selectedFilter changes
+    useEffect(() => {
+        applyFilters(allMembers);
+    }, [searchQuery, selectedFilter, allMembers]);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -535,11 +622,135 @@ export default function MembersListScreen() {
         fetchMembers();
     };
 
+    const deleteMember = async (id: string) => {
+        try {
+            await memberService.delete(id);
+            const updatedMembers = allMembers.filter(member =>
+                member._id !== id && member.id !== id
+            );
+            setAllMembers(updatedMembers);
+            applyFilters(updatedMembers); // Reapply filters with updated data
+        } catch (error) {
+            console.error(error);
+            showAlert('Error', 'Failed to delete member', 'error');
+        }
+    };
 
+    const toggleMayyathuFund = async (id: string, name: string, isMayyathu: boolean) => {
+        showAlert(
+            isMayyathu ? 'Remove from Mayyathu Fund' : 'Add to Mayyathu Fund',
+            isMayyathu
+                ? `Are you sure you want to remove ${name} from the Mayyathu Fund?`
+                : `Are you sure you want to add ${name} to the Mayyathu Fund?`,
+            'info',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: isMayyathu ? 'Remove' : 'Add',
+                    style: 'default',
+                    onPress: () => updateMayyathuStatus(id, name, !isMayyathu)
+                }
+            ]
+        );
+    };
+
+    // Function to update payment status for a single member
+    const updateMemberPaymentStatus = async (member: any) => {
+        const paymentStatus = await calculatePaymentStatus(member);
+        return {
+            ...member,
+            paymentStatus
+        };
+    };
+
+    const updateMayyathuStatus = async (id: string, name: string, status: boolean) => {
+        try {
+            await memberService.updateMayyathuStatus(id, status);
+
+            // Update the specific member in the state directly for immediate UI feedback
+            const updatedMembers = allMembers.map(member =>
+                member._id === id || member.id === id
+                    ? { ...member, mayyathuStatus: status }
+                    : member
+            );
+
+            setAllMembers(updatedMembers);
+            applyFilters(updatedMembers); // Reapply filters with updated data
+
+            showAlert('Success', status
+                ? `${name} has been added to Mayyathu Fund!`
+                : `${name} has been removed from Mayyathu Fund!`, 'success');
+        } catch (error) {
+            console.error(error);
+            showAlert('Error', status
+                ? 'Failed to add member to Mayyathu Fund'
+                : 'Failed to remove member from Mayyathu Fund', 'error');
+            // If update fails, refresh the list to revert any optimistic updates
+            fetchMembers();
+        }
+    };
+
+    const confirmDelete = (id: string, name: string) => {
+        showAlert('Delete Member', `Are you sure you want to delete ${name}?`, 'warning', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: () => deleteMember(id) }
+        ]);
+    };
+
+    const renderLeftSwipeActions = (id: string, name: string) => (
+        <TouchableOpacity
+            style={[styles.swipeableAction, styles.deleteAction]}
+            onPress={() => {
+                confirmDelete(id, name);
+                closeSwipeable(id);
+            }}
+        >
+            <XCircle size={24} color="#EF4444" />
+        </TouchableOpacity>
+    );
+
+    const renderRightSwipeActions = (id: string, name: string, isMayyathu: boolean) => (progress: any, dragX: any) => (
+        <TouchableOpacity
+            style={[styles.swipeableAction, isMayyathu ? styles.removeMayyathuAction : styles.mayyathuAction]}
+            onPress={() => {
+                toggleMayyathuFund(id, name, isMayyathu);
+                closeSwipeable(id);
+            }}
+        >
+            <DollarSign size={24}
+                color={isMayyathu ? "#F59E0B" : "#10B981"} // Amber for remove, green for add
+            />
+        </TouchableOpacity>
+    );
+
+    const closeSwipeable = (id: string) => {
+        const swipeable = swipeableRefs.current[id];
+        if (swipeable && typeof swipeable.close === 'function') {
+            swipeable.close();
+        }
+    };
+
+    const showMemberDetails = async (id: string) => {
+        const member = allMembers.find((m: { _id: string; id: string; }) => m._id === id || m.id === id);
+        if (member) {
+            setSelectedMember(member);
+            setMemberDetailModalVisible(true);
+        }
+    };
+
+    const addCollectionForMember = (member: any) => {
+        // Navigate to the AddCollection screen and pre-fill with member info
+        navigation.navigate('AddCollection', {
+            prefillData: {
+                collectedBy: member.fullName || 'Member',
+                description: `Collection from ${member.fullName || 'member'}`
+            }
+        });
+    };
 
     const renderMemberItem = ({ item }: { item: any }) => {
         const leftActions = (progress: any, dragX: any) => renderLeftSwipeActions(item._id || item.id, item.fullName);
-        const rightActions = (progress: any, dragX: any) => renderRightSwipeActions(item._id || item.id, item.fullName, item.mayyathuStatus === true || item.mayyathuStatus === 1);
+        const rightActions = renderRightSwipeActions(item._id || item.id, item.fullName, item.mayyathuStatus === true || item.mayyathuStatus === 1);
 
         return (
             <Swipeable
@@ -561,227 +772,383 @@ export default function MembersListScreen() {
                         </View>
                         <View style={styles.memberDetails}>
                             <Text style={styles.memberName}>{item.fullName || 'No Name'}</Text>
-                            <Text style={styles.memberPhone}>{item.phone || 'No phone'}</Text>
-                            <Text style={styles.memberId}>ID: {item.registrationNumber || item._id || item.id || 'N/A'}</Text>
+
+                            {/* Status indicators - Fund status and payment status stacked vertically */}
+                            <View style={styles.statusContainerVertical}>
+                                {/* Fund Status - Changed to text color only, no background */}
+                                <Text style={[
+                                    styles.fundStatusText,
+                                    (item.mayyathuStatus === true || item.mayyathuStatus === 1)
+                                        ? styles.mayyathuTextColor
+                                        : styles.regularTextColor
+                                ]}>
+                                    {item.mayyathuStatus === true || item.mayyathuStatus === 1 ? 'Mayyathu Fund' : 'Regular'}
+                                </Text>
+
+                                {/* Payment Status - Below the fund status with text color only */}
+                                {item.paymentStatus === 'overdue' ? (
+                                    <Text style={[styles.paymentStatus, styles.paymentOverdue]}>Over Due</Text>
+                                ) : item.paymentStatus === 'paid' ? (
+                                    <Text style={[styles.paymentStatus, styles.paymentPaid]}>Paid</Text>
+                                ) : (
+                                    <Text style={[styles.paymentStatus, styles.paymentDue]}>Due</Text>
+                                )}
+                            </View>
                         </View>
-                    </View>
-                    <View style={styles.memberStats}>
-                        <Text style={styles.familyMembersCount}>
-                            {typeof item.familyMembersCount !== 'undefined' && item.familyMembersCount !== null ? item.familyMembersCount : 0} family members
-                        </Text>
-                        {item.mayyathuStatus === true || item.mayyathuStatus === 1 ? (
-                            <View style={styles.mayyathuBadge}>
-                                <DollarSign size={14} color="#10b981" />
-                                <Text style={styles.mayyathuText}>Mayyathu</Text>
-                            </View>
-                        ) : (
-                            <View style={styles.regularBadge}>
-                                <Text style={styles.regularText}>Regular</Text>
-                            </View>
-                        )}
+
+                        {/* New Collection Icon - Placed on the right side */}
+                        <TouchableOpacity
+                            style={styles.addCollectionButton}
+                            onPress={() => addCollectionForMember(item)}
+                        >
+                            <IndianRupee size={20} color="#10b981" />
+                        </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             </Swipeable>
         );
     };
 
-    const theme = useTheme();
     if (loading && !refreshing) {
         return (
             <View style={[styles.container, styles.centerContent]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <ActivityIndicator size="large" color="#10b981" />
+                <Text style={styles.loadingText}>Loading members...</Text>
             </View>
         );
     }
 
-    const renderMemberDetailModal = () => {
-        if (!selectedMember) return null;
-
-        return (
-            <Modal
-                visible={showMemberModal}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setShowMemberModal(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        {memberDetailLoading ? (
-                            <View style={styles.modalLoadingContainer}>
-                                <ActivityIndicator size="large" color="#10b981" />
-                                <Text style={styles.loadingText}>Loading details...</Text>
-                            </View>
-                        ) : (
-                            <>
-                                <View style={styles.modalHeader}>
-                                    <Text style={styles.modalTitle}>Member Details</Text>
-                                    <TouchableOpacity
-                                        onPress={() => setShowMemberModal(false)}
-                                        style={styles.closeButton}
-                                    >
-                                        <X size={24} color="#6b7280" />
-                                    </TouchableOpacity>
-                                </View>
-
-                                <View style={styles.modalBody}>
-                                    <View style={styles.avatarContainer}>
-                                        <Text style={styles.avatarText}>
-                                            {selectedMember.fullName?.charAt(0) || 'U'}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <User size={20} color="#6b7280" />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Name</Text>
-                                            <Text style={styles.detailValue}>{selectedMember.fullName || 'N/A'}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <Mail size={20} color="#6b7280" />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Email</Text>
-                                            <Text style={styles.detailValue}>{selectedMember.email || 'N/A'}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <Phone size={20} color="#6b7280" />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Phone</Text>
-                                            <Text style={styles.detailValue}>{selectedMember.phone || 'N/A'}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <Calendar size={20} color="#6b7280" />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Age</Text>
-                                            <Text style={styles.detailValue}>{selectedMember.age || 'N/A'}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <MapPin size={20} color="#6b7280" />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Registration</Text>
-                                            <Text style={styles.detailValue}>{selectedMember.registrationNumber || 'N/A'}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <Heart size={16} color="#6b7280" />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Family Members</Text>
-                                            <Text style={styles.detailValue}>
-                                                {typeof selectedMember.familyMembersCount !== 'undefined' && selectedMember.familyMembersCount !== null
-                                                    ? selectedMember.familyMembersCount
-                                                    : (selectedMember.familyMembers ? selectedMember.familyMembers.length : 0)}
-                                                members
-                                            </Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailRow}>
-                                        <DollarSign size={16} color={selectedMember.mayyathuStatus ? "#10b981" : "#6b7280"} />
-                                        <View style={styles.detailTextContainer}>
-                                            <Text style={styles.detailLabel}>Mayyathu Fund</Text>
-                                            <Text style={[styles.detailValue, selectedMember.mayyathuStatus ? styles.mayyathuStatusText : styles.regularStatusText]}>
-                                                {selectedMember.mayyathuStatus ? 'Yes' : 'No'}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                </View>
-
-                                <View style={styles.modalActions}>
-                                    <PaperButton
-                                        style={styles.editButton}
-                                        onPress={() => {
-                                            setShowMemberModal(false);
-                                            navigation.navigate('AddMember', { mode: 'edit', item: { ...selectedMember } });
-                                        }}
-                                    >
-                                        <Text style={styles.buttonText}>Edit</Text>
-                                    </PaperButton>
-                                    <PaperButton
-                                        style={[styles.deleteButton, styles.modalCloseButton]}
-                                        onPress={() => setShowMemberModal(false)}
-                                    >
-                                        <Text style={styles.buttonText}>Close</Text>
-                                    </PaperButton>
-                                </View>
-                            </>
-                        )}
-                    </View>
-                </View>
-            </Modal>
-        );
-    };
-
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Members</Text>
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => navigation.navigate('AddMember', { mode: 'create' })}
-                >
-                    <Plus size={20} color="white" />
-                </TouchableOpacity>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+            <Header
+                title="Members"
+                subtitle={`${filteredMembers.length} ${filteredMembers.length === 1 ? 'member' : 'members'}`}
+                rightComponent={
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('AddMember', { mode: 'create' })}
+                        style={{ padding: 8 }}
+                    >
+                        <User size={20} color="#10b981" />
+                    </TouchableOpacity>
+                }
+            />
+
+            <View style={{ marginHorizontal: 16, marginBottom: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: isSearchFocused ? '#10b981' : '#d1d5db',
+                        borderRadius: 4,
+                        height: 40,
+                        backgroundColor: 'transparent',
+                        marginRight: 8,
+                        paddingHorizontal: 8
+                    }}>
+                        <Search size={16} color="#9ca3af" />
+                        <TextInput
+                            placeholder="Search members..."
+                            value={searchQuery}
+                            onChangeText={handleSearch}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setIsSearchFocused(false)}
+                            style={{
+                                flex: 1,
+                                marginLeft: 8,
+                                fontSize: 14,
+                                color: '#1f2937'
+                            }}
+                        />
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => setFilterMenuVisible(true)}
+                        style={{ padding: 12 }}
+                    >
+                        <Filter size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                </View>
             </View>
+
+                {/* Modal for filter options - using native Modal */}
+                <Modal
+                    visible={filterMenuVisible}
+                    transparent={true}
+                    animationType="none"
+                    onRequestClose={() => setFilterMenuVisible(false)}
+                >
+                    <TouchableOpacity
+                        style={styles.modalBackdrop}
+                        onPress={() => setFilterMenuVisible(false)}
+                    >
+                        <View style={styles.modalContainer}>
+                            <View style={styles.filterModalContent}>
+                                <TouchableOpacity
+                                    style={[styles.modalItem, selectedFilter === 'all' ? styles.selectedFilter : {}]}
+                                    onPress={() => handleFilterSelect('all')}
+                                >
+                                    <Text style={styles.modalItemText}>All</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalItem, selectedFilter === 'paid' ? styles.selectedFilter : {}]}
+                                    onPress={() => handleFilterSelect('paid')}
+                                >
+                                    <Text style={styles.modalItemText}>Paid</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalItem, selectedFilter === 'due' ? styles.selectedFilter : {}]}
+                                    onPress={() => handleFilterSelect('due')}
+                                >
+                                    <Text style={styles.modalItemText}>Due</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.modalItem, selectedFilter === 'overdue' ? styles.selectedFilter : {}]}
+                                    onPress={() => handleFilterSelect('overdue')}
+                                >
+                                    <Text style={styles.modalItemText}>Overdue</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
 
             <View style={styles.content}>
                 <FlatList
-                    data={members}
+                    data={filteredMembers}
                     renderItem={renderMemberItem}
                     keyExtractor={(item) => item._id || item.id}
                     onRefresh={onRefresh}
                     refreshing={refreshing}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No members found. Add your first member!</Text>
-                            <TouchableOpacity
-                                style={[styles.addButton, { marginTop: 16 }]}
-                                onPress={() => navigation.navigate('AddMember', { mode: 'create' })}
-                            >
-                                <Text style={styles.addButtonText}>Add Member</Text>
-                            </TouchableOpacity>
+                            <Text style={styles.emptyText}>
+                                {searchQuery || selectedFilter !== 'all'
+                                    ? 'No members found matching your criteria'
+                                    : 'No members found. Add your first member!'}
+                            </Text>
+                            {!(searchQuery || selectedFilter !== 'all') && (
+                                <TouchableOpacity
+                                    style={[styles.addButton, { marginTop: 16 }]}
+                                    onPress={() => navigation.navigate('AddMember', { mode: 'create' })}
+                                >
+                                    <Text style={{ color: '#10b981', fontWeight: 'bold' }}>Add Member</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     }
                 />
             </View>
 
             {showCustomAlert && (
-                <View style={styles.customAlert}>
-                    <View style={styles.alertContent}>
-                        <Text style={styles.alertTitle}>{alertConfig.title}</Text>
-                        <Text style={styles.alertMessage}>{alertConfig.message}</Text>
-                        <View style={styles.alertButtonContainer}>
-                            <TouchableOpacity
-                                style={[styles.alertButton, styles.cancelButton]}
-                                onPress={() => {
-                                    alertConfig.onCancel();
-                                    setShowCustomAlert(false);
-                                }}
-                            >
-                                <Text style={styles.alertButtonText}>{alertConfig.cancelText}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.alertButton, styles.confirmButton]}
-                                onPress={() => {
-                                    alertConfig.onConfirm();
-                                    setShowCustomAlert(false);
-                                }}
-                            >
-                                <Text style={styles.alertButtonText}>{alertConfig.confirmText}</Text>
-                            </TouchableOpacity>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.alertModalContent}>
+                        <View style={{ padding: 20 }}>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>{alertConfig.title}</Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>{alertConfig.message}</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+                                <PaperButton
+                                    onPress={() => {
+                                        alertConfig.onCancel();
+                                        setShowCustomAlert(false);
+                                    }}
+                                >
+                                    <Text>{alertConfig.cancelText}</Text>
+                                </PaperButton>
+                                <PaperButton
+                                    onPress={() => {
+                                        alertConfig.onConfirm();
+                                        setShowCustomAlert(false);
+                                    }}
+                                    mode="contained"
+                                >
+                                    <Text style={{ color: '#fff' }}>{alertConfig.confirmText}</Text>
+                                </PaperButton>
+                            </View>
                         </View>
                     </View>
                 </View>
             )}
 
-            {renderMemberDetailModal()}
+            <AlertBox
+                visible={alertVisible}
+                title={alertProps.title}
+                message={alertProps.message}
+                type={alertProps.type}
+                buttons={alertProps.buttons}
+                onClose={() => setAlertVisible(false)}
+            />
+
+            {/* Member Detail Modal */}
+            <Modal
+                visible={memberDetailModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setMemberDetailModalVisible(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+                    {selectedMember && (
+                        <View style={styles.memberDetailModal}>
+                            <View style={styles.memberDetailHeader}>
+                                <Text style={styles.memberDetailTitle}>Member Details</Text>
+                                <TouchableOpacity
+                                    style={styles.memberDetailCloseButton}
+                                    onPress={() => setMemberDetailModalVisible(false)}
+                                >
+                                    <XCircle size={20} color="#6b7280" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView style={styles.memberDetailContent}>
+                                {/* Member Header */}
+                                <View style={styles.memberHeader}>
+                                    <View style={styles.memberAvatar}>
+                                        <Text style={styles.avatarText}>
+                                            {selectedMember.fullName?.charAt(0) || 'U'}
+                                        </Text>
+                                    </View>
+                                    <View>
+                                        <Text style={styles.memberName}>{selectedMember.fullName || 'N/A'}</Text>
+                                        <Text style={styles.memberPhone}>Phone: {selectedMember.phone || 'N/A'}</Text>
+                                    </View>
+                                </View>
+
+                                <Text style={styles.sectionTitle}>Personal Information</Text>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Age:</Text>
+                                    <Text style={styles.detailValue}>{selectedMember.age || 'N/A'}</Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Aadhaar:</Text>
+                                    <Text style={styles.detailValue}>{selectedMember.adharNumber || 'N/A'}</Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Occupation:</Text>
+                                    <Text style={styles.detailValue}>{selectedMember.occupation || 'N/A'}</Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>House Type:</Text>
+                                    <Text style={styles.detailValue}>{selectedMember.houseType || 'N/A'}</Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Registration:</Text>
+                                    <Text style={styles.detailValue}>{selectedMember.registrationNumber || 'N/A'}</Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Mayyathu Fund:</Text>
+                                    <Text style={styles.detailValue}>
+                                        {selectedMember.mayyathuStatus ? 'Yes' : 'No'}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Family Members:</Text>
+                                    <Text style={styles.detailValue}>
+                                        {selectedMember.familyMembersCount || 0}
+                                    </Text>
+                                </View>
+
+                                {selectedMember.familyMembers && selectedMember.familyMembers.length > 0 && (
+                                    <>
+                                        <Text style={styles.sectionTitle}>Family Members</Text>
+                                        {selectedMember.familyMembers.map((member: any, index: number) => (
+                                            <View key={index} style={styles.familyMemberRow}>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontWeight: '600', color: '#1f2937', fontSize: 15 }}>{member.name}</Text>
+                                                    <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                                                        {member.relation || member.relationship || member.relationType || member.rel || 'Relation N/A'}
+                                                    </Text>
+                                                </View>
+                                                <View style={{ alignItems: 'flex-end' }}>
+                                                    <Text style={{ color: '#1f2937', fontWeight: '500', fontSize: 14 }}>Age: {member.age}</Text>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </>
+                                )}
+                            </ScrollView>
+
+                            <View style={styles.modalButtons}>
+                                <PaperButton
+                                    mode="outlined"
+                                    onPress={() => {
+                                        setMemberDetailModalVisible(false);
+                                        // Navigate to edit mode
+                                        navigation.navigate('AddMember', { mode: 'edit', item: selectedMember });
+                                    }}
+                                    style={styles.modalButton}
+                                >
+                                    <Text style={{ color: '#059669' }}>Edit</Text>
+                                </PaperButton>
+                                <PaperButton
+                                    mode="contained"
+                                    onPress={() => {
+                                        setMemberDetailModalVisible(false);
+                                        // Add collection for this member
+                                        navigation.navigate('AddCollection', {
+                                            prefillData: {
+                                                collectedBy: selectedMember.fullName || 'Member',
+                                                description: `Collection from ${selectedMember.fullName || 'member'}`
+                                            }
+                                        });
+                                    }}
+                                    style={[styles.modalButton, { backgroundColor: '#059669' }]}
+                                >
+                                    <Text style={{ color: 'white' }}>Add Collection</Text>
+                                </PaperButton>
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </Modal>
+
+            {/* Modal for filter options - using native Modal */}
+            <Modal
+                visible={filterMenuVisible}
+                transparent={true}
+                animationType="none"
+                onRequestClose={() => setFilterMenuVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalBackdrop}
+                    onPress={() => setFilterMenuVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.filterModalContent}>
+                            <TouchableOpacity
+                                style={[styles.modalItem, selectedFilter === 'all' ? styles.selectedFilter : {}]}
+                                onPress={() => handleFilterSelect('all')}
+                            >
+                                <Text style={styles.modalItemText}>All</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalItem, selectedFilter === 'paid' ? styles.selectedFilter : {}]}
+                                onPress={() => handleFilterSelect('paid')}
+                            >
+                                <Text style={styles.modalItemText}>Paid</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalItem, selectedFilter === 'due' ? styles.selectedFilter : {}]}
+                                onPress={() => handleFilterSelect('due')}
+                            >
+                                <Text style={styles.modalItemText}>Due</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalItem, selectedFilter === 'overdue' ? styles.selectedFilter : {}]}
+                                onPress={() => handleFilterSelect('overdue')}
+                            >
+                                <Text style={styles.modalItemText}>Overdue</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 }

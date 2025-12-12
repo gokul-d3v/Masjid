@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
 import { dashboardService } from '../services/api';
 import { RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Plus, Users, DollarSign, IndianRupee, Calendar, TrendingUp } from 'lucide-react-native';
+import { Plus, Users, DollarSign, IndianRupee, Calendar, TrendingUp, LogOut } from 'lucide-react-native';
 import { useTheme } from 'react-native-paper';
+import { useAuth } from '../context/AuthContext';
+import Header from '../components/Header';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const navigation = useNavigation<any>();
+    const { signOut } = useAuth();
+    const insets = useSafeAreaInsets();
 
     const fetchStats = async () => {
         try {
@@ -48,27 +53,11 @@ export default function DashboardScreen() {
         container: {
             flex: 1,
             backgroundColor: '#f9fafb',
-            paddingTop: 40,
+            paddingTop: 0, // Safe area will be handled by the wrapper View
         },
         content: {
             padding: 15,
-            paddingTop: 40,
-        },
-        header: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 20,
-        },
-        headerTitle: {
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#2563eb',
-            marginLeft: 8,
-        },
-        headerSubtitle: {
-            fontSize: 14,
-            color: '#9ca3af',
-            marginLeft: 32,
+            paddingTop: 16, // Keep some padding below the header
         },
         statsContainer: {
             flexDirection: 'row',
@@ -185,10 +174,14 @@ export default function DashboardScreen() {
             color: '#9ca3af',
             textAlign: 'center',
         },
+        logoutButton: {
+            padding: 4,
+            borderRadius: 20,
+        },
     });
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <ScrollView
                 contentContainerStyle={styles.content}
                 refreshControl={
@@ -196,11 +189,18 @@ export default function DashboardScreen() {
                 }
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.header}>
-                    <TrendingUp size={24} color="#059669" />
-                    <Text style={styles.headerTitle}>Dashboard</Text>
-                </View>
-                <Text style={styles.headerSubtitle}>Welcome back! Here's your overview</Text>
+                <Header
+                    title="Dashboard"
+                    subtitle="Welcome back! Here's your overview"
+                    rightComponent={
+                        <TouchableOpacity
+                            onPress={signOut}
+                            style={{ padding: 8 }}
+                        >
+                            <LogOut size={20} color="#ef4444" />
+                        </TouchableOpacity>
+                    }
+                />
 
                 <View style={styles.statsContainer}>
                     {[

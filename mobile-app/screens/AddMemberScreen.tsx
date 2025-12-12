@@ -7,7 +7,10 @@ import {
     Text as RNText,
     KeyboardAvoidingView,
     Platform,
-    Alert
+    Alert,
+    Switch,
+    TouchableOpacity,
+    Modal
 } from 'react-native';
 import {
     Button as PaperButton,
@@ -23,13 +26,27 @@ import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { memberService } from '../services/api';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Trash2, UserPlus, Home, Phone, Hash, Calendar, Users } from 'lucide-react-native';
+import { ArrowLeft, Trash2, UserPlus, Home, Phone, Hash, Calendar, Users, AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react-native';
+import Header from '../components/Header';
 
 interface FamilyMember {
     name: string;
     relation: string;
     age: string;
 }
+
+// Define house type options
+const HOUSE_TYPE_OPTIONS = [
+    { label: 'Own House', value: 'Own House' },
+    { label: 'Rented', value: 'Rented' },
+    { label: 'Apartment', value: 'Apartment' },
+    { label: 'Villa', value: 'Villa' },
+    { label: 'Independent House', value: 'Independent House' },
+    { label: 'Condominium', value: 'Condominium' },
+    { label: 'Townhouse', value: 'Townhouse' },
+    { label: 'Studio', value: 'Studio' },
+    { label: 'Duplex', value: 'Duplex' },
+];
 
 export default function AddMemberScreen() {
     const route = useRoute();
@@ -41,11 +58,21 @@ export default function AddMemberScreen() {
     const [adharNumber, setAdharNumber] = useState('');
     const [registrationNumber, setRegistrationNumber] = useState('');
     const [houseType, setHouseType] = useState('');
+    const [occupation, setOccupation] = useState('');
     const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<any>({});
     const [mode, setMode] = useState<'create' | 'edit' | 'view'>('create');
     const [currentItem, setCurrentItem] = useState<any>(null);
+    const [mayyathuStatus, setMayyathuStatus] = useState(false);
+    const [houseTypeMenuVisible, setHouseTypeMenuVisible] = useState(false);
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+    const [alertButtons, setAlertButtons] = useState<Array<{ text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }>>([]);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -54,6 +81,7 @@ export default function AddMemberScreen() {
 
         setMode(routeMode || 'create');
 
+        // Reset all form fields first to avoid mixing data from previous sessions
         if (routeMode === 'edit' || routeMode === 'view') {
             if (item) {
                 setCurrentItem(item);
@@ -63,39 +91,171 @@ export default function AddMemberScreen() {
                 setAdharNumber(item.adharNumber || '');
                 setRegistrationNumber(item?.registrationNumber || '');
                 setHouseType(item.houseType || '');
-                setFamilyMembers(item.familyMembers || []);
+                setOccupation(item.occupation || '');
+                // Convert family member ages to strings for proper input display
+                const familyMembersWithAgeStrings = (item.familyMembers || []).map(fm => ({
+                    ...fm,
+                    age: fm.age?.toString() || ''
+                }));
+                setFamilyMembers(familyMembersWithAgeStrings);
+                setMayyathuStatus(item.mayyathuStatus || false);
+            } else {
+                // If no item is provided in edit/view mode, reset to empty values
+                setFullName('');
+                setAge('');
+                setPhone('');
+                setAdharNumber('');
+                setRegistrationNumber('');
+                setHouseType('');
+                setOccupation('');
+                setFamilyMembers([]);
+                setMayyathuStatus(false);
             }
+        } else if (routeMode === 'create') {
+            // Reset all fields for create mode
+            setFullName('');
+            setAge('');
+            setPhone('');
+            setAdharNumber('');
+            setRegistrationNumber('');
+            setHouseType('');
+            setOccupation('');
+            setFamilyMembers([]);
+            setMayyathuStatus(false);
         }
     }, [routeParams]);
 
     const validate = () => {
         const newErrors: any = {};
+        const errorMessages: string[] = [];
 
-        if (!fullName.trim()) newErrors.fullName = 'Full name is required';
-        if (!age) newErrors.age = 'Age is required';
-        else if (parseInt(age) < 1 || parseInt(age) > 120) newErrors.age = 'Age must be between 1 and 120';
+        // Validate full name
+        if (!fullName.trim()) {
+            newErrors.fullName = 'Full name is required';
+            errorMessages.push('Please enter the full name');
+        } else if (fullName.trim().length < 2) {
+            newErrors.fullName = 'Full name must be at least 2 characters';
+            errorMessages.push('Full name must be at least 2 characters');
+        }
 
-        if (!phone) newErrors.phone = 'Phone is required';
-        else if (!/^\d{10}$/.test(phone)) newErrors.phone = 'Phone must be 10 digits';
+        // Validate age
+        if (!age) {
+            newErrors.age = 'Age is required';
+            errorMessages.push('Please enter age');
+        } else {
+            const ageNum = parseInt(age);
+            if (isNaN(ageNum)) {
+                newErrors.age = 'Age must be a number';
+                errorMessages.push('Age must be a number');
+            } else if (ageNum < 1 || ageNum > 120) {
+                newErrors.age = 'Age must be between 1 and 120';
+                errorMessages.push('Age must be between 1 and 120 years');
+            }
+        }
 
-        if (!adharNumber) newErrors.adharNumber = 'Aadhaar number is required';
-        else if (!/^\d{12}$/.test(adharNumber)) newErrors.adharNumber = 'Aadhaar must be 12 digits';
+        // Validate phone
+        if (!phone) {
+            newErrors.phone = 'Phone number is required';
+            errorMessages.push('Please enter phone number');
+        } else if (!/^\d+$/.test(phone)) {
+            newErrors.phone = 'Phone number must contain only digits';
+            errorMessages.push('Phone number must contain only digits (0-9)');
+        } else if (phone.length !== 10) {
+            newErrors.phone = 'Phone number must be exactly 10 digits';
+            errorMessages.push('Phone number must be exactly 10 digits');
+        }
 
-        if (isCreateMode && !registrationNumber.trim()) newErrors.registrationNumber = 'Registration number is required';
-        if (!houseType) newErrors.houseType = 'House type is required';
+        // Validate Aadhaar number
+        if (!adharNumber) {
+            newErrors.adharNumber = 'Aadhaar number is required';
+            errorMessages.push('Please enter Aadhaar number');
+        } else if (!/^\d+$/.test(adharNumber)) {
+            newErrors.adharNumber = 'Aadhaar number must contain only digits';
+            errorMessages.push('Aadhaar number must contain only digits (0-9)');
+        } else if (adharNumber.length !== 12) {
+            newErrors.adharNumber = 'Aadhaar number must be exactly 12 digits';
+            errorMessages.push('Aadhaar number must be exactly 12 digits');
+        }
+
+        // Validate registration number (only required for create mode)
+        if (isCreateMode) {
+            if (!registrationNumber.trim()) {
+                newErrors.registrationNumber = 'Registration number is required';
+                errorMessages.push('Please enter registration number');
+            } else if (registrationNumber.trim().length < 3) {
+                newErrors.registrationNumber = 'Registration number must be at least 3 characters';
+                errorMessages.push('Registration number must be at least 3 characters');
+            }
+        }
+
+        // Validate house type
+        if (!houseType) {
+            newErrors.houseType = 'House type is required';
+            errorMessages.push('Please select house type');
+        } else if (!HOUSE_TYPE_OPTIONS.some(option => option.value === houseType)) {
+            newErrors.houseType = 'Please select a valid house type';
+            errorMessages.push('Please select a valid house type from the dropdown');
+        }
+
+        // Validate occupation
+        if (!occupation.trim()) {
+            newErrors.occupation = 'Occupation is required';
+            errorMessages.push('Please enter occupation');
+        } else if (occupation.trim().length < 2) {
+            newErrors.occupation = 'Occupation must be at least 2 characters';
+            errorMessages.push('Occupation must be at least 2 characters');
+        }
 
         // Validate family members
-        familyMembers.forEach((member, index) => {
-            if (!member.name.trim()) newErrors[`familyMember${index}Name`] = 'Name is required';
-            if (!member.relation.trim()) newErrors[`familyMember${index}Relation`] = 'Relation is required';
-            if (!member.age) newErrors[`familyMember${index}Age`] = 'Age is required';
-            else if (parseInt(member.age) < 0 || parseInt(member.age) > 120) {
-                newErrors[`familyMember${index}Age`] = 'Age must be between 0 and 120';
-            }
-        });
+        if (familyMembers.length === 0) {
+            // If there are no family members, that's fine - it's optional
+        } else {
+            familyMembers.forEach((member, index) => {
+                // Validate family member name
+                if (!member.name.trim()) {
+                    newErrors[`familyMember${index}Name`] = 'Family member name is required';
+                    errorMessages.push(`Family member ${index + 1} name is required`);
+                } else if (member.name.trim().length < 2) {
+                    newErrors[`familyMember${index}Name`] = 'Name must be at least 2 characters';
+                    errorMessages.push(`Family member ${index + 1} name must be at least 2 characters`);
+                }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+                // Validate family member relation
+                if (!member.relation.trim()) {
+                    newErrors[`familyMember${index}Relation`] = 'Relation is required';
+                    errorMessages.push(`Family member ${index + 1} relation is required`);
+                } else if (member.relation.trim().length < 2) {
+                    newErrors[`familyMember${index}Relation`] = 'Relation must be at least 2 characters';
+                    errorMessages.push(`Family member ${index + 1} relation must be at least 2 characters`);
+                }
+
+                // Validate family member age
+                if (!member.age) {
+                    newErrors[`familyMember${index}Age`] = 'Age is required';
+                    errorMessages.push(`Family member ${index + 1} age is required`);
+                } else {
+                    const memberAge = parseInt(member.age);
+                    if (isNaN(memberAge)) {
+                        newErrors[`familyMember${index}Age`] = 'Age must be a number';
+                        errorMessages.push(`Family member ${index + 1} age must be a number`);
+                    } else if (memberAge < 0 || memberAge > 120) {
+                        newErrors[`familyMember${index}Age`] = 'Age must be between 0 and 120';
+                        errorMessages.push(`Family member ${index + 1} age must be between 0 and 120 years`);
+                    }
+                }
+            });
+        }
+
+        // Show errors as snackbar if there are any
+        if (errorMessages.length > 0) {
+            setSnackbarMessage(errorMessages.join('\n'));
+            setSnackbarVisible(true);
+            setErrors(newErrors); // Still maintain inline errors for programmatic access if needed
+            return false;
+        } else {
+            setErrors({});
+            return true;
+        }
     };
 
     const handleAddFamilyMember = () => {
@@ -116,6 +276,20 @@ export default function AddMemberScreen() {
     const isEditMode = mode === 'edit';
     const isCreateMode = mode === 'create';
 
+    // Function to show custom alert
+    const showAlert = (
+        title: string,
+        message: string,
+        type: 'success' | 'error' | 'warning' | 'info' = 'info',
+        buttons: Array<{ text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }> = [{ text: 'OK' }]
+    ) => {
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setAlertType(type);
+        setAlertButtons(buttons);
+        setAlertVisible(true);
+    };
+
     const handleSubmit = async () => {
         // In view mode, just go back without saving
         if (isViewMode) {
@@ -133,17 +307,21 @@ export default function AddMemberScreen() {
                 age: number;
                 phone: string;
                 adharNumber: string;
+                occupation: string;
                 houseType: string;
                 familyMembersCount: number;
                 familyMembers: { name: string; relation: string; age: number; }[];
+                mayyathuStatus?: boolean;
                 registrationNumber?: string;
             } = {
                 fullName: fullName.trim(),
                 age: parseInt(age) || 0,
                 phone: phone.trim(),
                 adharNumber: adharNumber.trim(),
+                occupation: occupation.trim(),
                 houseType: houseType,
                 familyMembersCount: familyMembers.length,
+                mayyathuStatus: mayyathuStatus,
                 familyMembers: familyMembers.map(m => ({
                     name: m.name.trim(),
                     relation: m.relation.trim(),
@@ -154,9 +332,11 @@ export default function AddMemberScreen() {
                 age: number;
                 phone: string;
                 adharNumber: string;
+                occupation: string;
                 houseType: string;
                 familyMembersCount: number;
                 familyMembers: { name: string; relation: string; age: number; }[];
+                mayyathuStatus?: boolean;
                 registrationNumber?: string;
             };
 
@@ -167,17 +347,17 @@ export default function AddMemberScreen() {
 
             if (mode === 'create') {
                 await memberService.create(memberData);
-                Alert.alert('Success', 'Member added successfully!');
+                showAlert('Success', 'Member added successfully!', 'success');
             } else if (mode === 'edit') {
                 const memberId = currentItem?.id || currentItem?._id;
                 console.log("Current item:", currentItem); // For debugging
                 console.log("Member ID:", memberId); // For debugging
                 if (!memberId) {
-                    Alert.alert('Error', `Member ID is required for update. Current item ID: ${JSON.stringify(currentItem?.id || currentItem?._id || 'undefined')}`);
+                    showAlert('Error', `Member ID is required for update. Current item ID: ${JSON.stringify(currentItem?.id || currentItem?._id || 'undefined')}`, 'error');
                     return;
                 }
                 await memberService.update(memberId, memberData);
-                Alert.alert('Success', 'Member updated successfully!');
+                showAlert('Success', 'Member updated successfully!', 'success');
             }
 
             navigation.goBack();
@@ -196,7 +376,7 @@ export default function AddMemberScreen() {
                 errorMessage = error.message || 'Unknown error occurred';
             }
 
-            Alert.alert('Error', errorMessage);
+            showAlert('Error', errorMessage, 'error');
         } finally {
             setLoading(false);
         }
@@ -206,31 +386,12 @@ export default function AddMemberScreen() {
         container: {
             flex: 1,
             backgroundColor: '#f9fafb', // coolGray50 equivalent
+            paddingTop: 0,
         },
         content: {
             padding: 20,
-            paddingTop: 40,
+            paddingTop: 0,
             paddingBottom: 20,
-        },
-        header: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 16,
-        },
-        headerTitle: {
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-        title: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#2563eb', // primary800 equivalent
-            marginLeft: 8,
-        },
-        subtitle: {
-            fontSize: 14,
-            color: '#9ca3af', // coolGray500
-            marginLeft: 32, // ml="$8" equivalent
         },
         card: {
             marginVertical: 16,
@@ -238,6 +399,7 @@ export default function AddMemberScreen() {
             borderRadius: 8,
             borderWidth: 1,
             borderColor: '#e5e7eb', // coolGray200
+            backgroundColor: 'white', // Ensure the card has a white background
         },
         sectionTitle: {
             fontSize: 14,
@@ -255,6 +417,7 @@ export default function AddMemberScreen() {
         inputRow: {
             flexDirection: 'row',
             gap: 12,
+            marginBottom: 16,
         },
         halfInput: {
             flex: 1,
@@ -265,6 +428,7 @@ export default function AddMemberScreen() {
             borderRadius: 8,
             borderWidth: 1,
             borderColor: '#e5e7eb', // coolGray200
+            backgroundColor: 'white', // Ensure the card has a white background
         },
         familyMemberHeader: {
             flexDirection: 'row',
@@ -316,256 +480,580 @@ export default function AddMemberScreen() {
             color: '#9ca3af', // coolGray500
             textAlign: 'center',
         },
+        toggleContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 16,
+            marginBottom: 16,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: '#e5e7eb',
+        },
+        toggleLabelContainer: {
+            flex: 1,
+        },
+        toggleLabel: {
+            fontWeight: 'bold',
+            color: '#374151', // coolGray700
+        },
+        toggleDescription: {
+            fontSize: 12,
+            color: '#6b7280', // coolGray500
+        },
+        toggleSwitchContainer: {
+            paddingLeft: 16,
+        },
+        dropdownContainer: {
+            width: '100%',
+            marginBottom: 16,
+        },
+        categoryInput: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#d1d5db',
+            backgroundColor: 'transparent',
+            borderRadius: 4,
+            minHeight: 50,
+            paddingHorizontal: 12,
+            marginTop: 4,
+        },
+        modalBackdrop: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        modalContent: {
+            backgroundColor: 'white',
+            borderRadius: 8,
+            padding: 8,
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+        },
+        modalItem: {
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            borderRadius: 4,
+        },
+        selectedFilter: {
+            backgroundColor: '#f0f9ff',
+        },
+        modalItemText: {
+            fontSize: 16,
+            color: '#1f2937',
+        },
+        dropdownButton: {
+            width: '100%',
+            justifyContent: 'flex-start',
+            borderWidth: 1,
+            borderColor: '#d1d5db',
+            backgroundColor: 'transparent',
+        },
+        dropdownButtonError: {
+            borderColor: '#ef4444', // red-500
+        },
+        dropdownButtonText: {
+            textAlign: 'left',
+            color: '#374151',
+            fontSize: 16,
+        },
+        snackbarContainer: {
+            position: 'absolute',
+            top: 10,
+            left: 20,
+            right: 20,
+            zIndex: 9999,
+        },
+        topSnackbar: {
+            position: 'absolute',
+            top: 10,
+            left: 20,
+            right: 20,
+            zIndex: 9999,
+        },
+        customToast: {
+            position: 'absolute',
+            bottom: 30,
+            left: 20,
+            right: 20,
+            zIndex: 9999,
+            elevation: 5,
+        },
+        toastContent: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: '#dc2626', // red-600
+            padding: 16,
+            borderRadius: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+        },
+        toastText: {
+            color: 'white',
+            flex: 1,
+            fontSize: 14,
+            textAlign: 'left',
+        },
+        toastButton: {
+            padding: 4,
+            marginLeft: 8,
+        },
+        toastButtonText: {
+            color: 'white',
+            fontSize: 18,
+            fontWeight: 'bold',
+        },
+        alertOverlay: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+        },
+        alertContainer: {
+            backgroundColor: 'white',
+            borderRadius: 8,
+            padding: 20,
+            width: '80%',
+            maxWidth: 400,
+            maxHeight: '80%',
+        },
+        alertHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 15,
+        },
+        alertIcon: {
+            marginRight: 10,
+        },
+        alertTitle: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: '#374151',
+        },
+        alertMessage: {
+            fontSize: 14,
+            color: '#4b5563',
+            marginBottom: 20,
+            lineHeight: 20,
+        },
+        alertButtonContainer: {
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            gap: 10,
+        },
+        alertButton: {
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            borderRadius: 4,
+        },
+        alertButtonPrimary: {
+            backgroundColor: '#059669', // emerald-600
+        },
+        alertButtonSecondary: {
+            backgroundColor: '#d1d5db', // gray-300
+        },
+        alertButtonText: {
+            color: 'white',
+            fontWeight: 'bold',
+        },
+        alertButtonSecondaryText: {
+            color: '#374151',
+        },
     });
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.container}
-        >
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <PaperButton
-                            mode="text"
-                            onPress={() => navigation.goBack()}
-                            style={{ padding: 4 }}
+        <View style={{ flex: 1 }}>
+            {/* Custom Toast at the top */}
+            {snackbarVisible && (
+                <View style={styles.customToast}>
+                    <View style={styles.toastContent}>
+                        <RNText style={styles.toastText}>{snackbarMessage}</RNText>
+                        <TouchableOpacity
+                            onPress={() => setSnackbarVisible(false)}
+                            style={styles.toastButton}
                         >
-                            <ArrowLeft size={24} color="#059669" />
-                        </PaperButton>
-                        <View style={styles.headerTitle}>
-                            <UserPlus size={24} color="#059669" />
-                            <RNText style={styles.title}>Add New Member</RNText>
-                        </View>
+                            <RNText style={styles.toastButtonText}>×</RNText>
+                        </TouchableOpacity>
                     </View>
-                    <RNText style={styles.subtitle}>Enter member details below</RNText>
+                </View>
+            )}
 
-                    <PaperCard style={styles.card}>
-                        <View>
-                            <RNText style={styles.sectionTitle}>Personal Information</RNText>
-                        </View>
-
-                        <PaperInput
-                            label="Full Name"
-                            value={fullName}
-                            onChangeText={(value) => !isViewMode && setFullName(value)}
-                            error={!!errors.fullName}
-                            style={styles.inputContainer}
-                            mode="outlined"
-                            theme={{ colors: { primary: '#059669' } }}
-                            disabled={isViewMode}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={[styles.container, { paddingTop: insets.top }]}
+            >
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                    <View style={styles.content}>
+                        <Header
+                            title={mode === 'create' ? "Add New Member" : mode === 'edit' ? "Edit Member" : "View Member"}
+                            subtitle="Enter member details below"
+                            leftComponent={
+                                <PaperButton
+                                    onPress={() => navigation.goBack()}
+                                    mode="text"
+                                    style={{ marginLeft: -8 }}
+                                >
+                                    <ArrowLeft size={20} color="#2563eb" />
+                                </PaperButton>
+                            }
                         />
-                        {errors.fullName && (
-                            <RNText style={styles.errorText}>{errors.fullName}</RNText>
-                        )}
 
-                        <View style={styles.inputRow}>
-                            <PaperInput
-                                label="Age"
-                                value={age}
-                                onChangeText={(value) => !isViewMode && setAge(value)}
-                                keyboardType="number-pad"
-                                error={!!errors.age}
-                                style={styles.halfInput}
-                                mode="outlined"
-                                theme={{ colors: { primary: '#059669' } }}
-                                disabled={isViewMode}
-                            />
-                            {errors.age && (
-                                <RNText style={styles.errorText}>{errors.age}</RNText>
-                            )}
-
-                            <PaperInput
-                                label="Phone"
-                                value={phone}
-                                onChangeText={(value) => !isViewMode && setPhone(value)}
-                                keyboardType="phone-pad"
-                                maxLength={10}
-                                error={!!errors.phone}
-                                style={styles.halfInput}
-                                mode="outlined"
-                                theme={{ colors: { primary: '#059669' } }}
-                                disabled={isViewMode}
-                            />
-                            {errors.phone && (
-                                <RNText style={styles.errorText}>{errors.phone}</RNText>
-                            )}
-                        </View>
-
-                        <View style={styles.inputRow}>
-                            <PaperInput
-                                label="Aadhaar Number"
-                                value={adharNumber}
-                                onChangeText={(value) => !isViewMode && setAdharNumber(value)}
-                                keyboardType="number-pad"
-                                maxLength={12}
-                                error={!!errors.adharNumber}
-                                style={styles.halfInput}
-                                mode="outlined"
-                                theme={{ colors: { primary: '#059669' } }}
-                                disabled={isViewMode}
-                            />
-                            {errors.adharNumber && (
-                                <RNText style={styles.errorText}>{errors.adharNumber}</RNText>
-                            )}
-
-                            <PaperInput
-                                label="Registration"
-                                value={registrationNumber}
-                                onChangeText={(value) => !isViewMode && setRegistrationNumber(value)}
-                                error={!!errors.registrationNumber}
-                                style={styles.halfInput}
-                                mode="outlined"
-                                theme={{ colors: { primary: '#059669' } }}
-                                disabled={isViewMode || isEditMode}
-                            />
-                            {errors.registrationNumber && (
-                                <RNText style={styles.errorText}>{errors.registrationNumber}</RNText>
-                            )}
-                        </View>
-
-                        <PaperInput
-                            label="House Type"
-                            value={houseType}
-                            onChangeText={!isViewMode ? setHouseType : undefined}
-                            error={!!errors.houseType}
-                            style={styles.inputContainer}
-                            mode="outlined"
-                            theme={{ colors: { primary: '#059669' } }}
-                            disabled={isViewMode}
-                        />
-                        {errors.houseType && (
-                            <RNText style={styles.errorText}>{errors.houseType}</RNText>
-                        )}
-                    </PaperCard>
-
-                    <PaperCard style={styles.card}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <View style={{ flex: 1 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Users size={18} color="#059669" />
-                                    <RNText style={styles.sectionTitle}>Family Members</RNText>
-                                </View>
-                                <RNText style={styles.sectionSubtitle}>Add family members associated with this account</RNText>
+                        <PaperCard style={styles.card}>
+                            <View>
+                                <RNText style={styles.sectionTitle}>Personal Information</RNText>
                             </View>
+
+                            <PaperInput
+                                label="Full Name"
+                                value={fullName}
+                                onChangeText={(value) => !isViewMode && setFullName(value)}
+                                error={!!errors.fullName}
+                                style={styles.inputContainer}
+                                mode="outlined"
+                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                underlineColor="transparent"
+                                activeUnderlineColor="transparent"
+                                disabled={isViewMode}
+                            />
+
+                            <View style={styles.inputRow}>
+                                <PaperInput
+                                    label="Age"
+                                    value={age}
+                                    onChangeText={(value) => !isViewMode && setAge(value)}
+                                    keyboardType="number-pad"
+                                    error={!!errors.age}
+                                    style={styles.halfInput}
+                                    mode="outlined"
+                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                    underlineColor="transparent"
+                                    activeUnderlineColor="transparent"
+                                    disabled={isViewMode}
+                                />
+
+                                <PaperInput
+                                    label="Phone"
+                                    value={phone}
+                                    onChangeText={(value) => !isViewMode && setPhone(value)}
+                                    keyboardType="phone-pad"
+                                    maxLength={10}
+                                    error={!!errors.phone}
+                                    style={styles.halfInput}
+                                    mode="outlined"
+                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                    underlineColor="transparent"
+                                    activeUnderlineColor="transparent"
+                                    disabled={isViewMode}
+                                />
+                            </View>
+
+                            <View style={styles.inputRow}>
+                                <PaperInput
+                                    label="Aadhaar Number"
+                                    value={adharNumber}
+                                    onChangeText={(value) => !isViewMode && setAdharNumber(value)}
+                                    keyboardType="number-pad"
+                                    maxLength={12}
+                                    error={!!errors.adharNumber}
+                                    style={styles.halfInput}
+                                    mode="outlined"
+                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                    underlineColor="transparent"
+                                    activeUnderlineColor="transparent"
+                                    disabled={isViewMode}
+                                />
+
+                                <PaperInput
+                                    label="Registration"
+                                    value={registrationNumber}
+                                    onChangeText={(value) => !isViewMode && setRegistrationNumber(value)}
+                                    error={!!errors.registrationNumber}
+                                    style={styles.halfInput}
+                                    mode="outlined"
+                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                    underlineColor="transparent"
+                                    activeUnderlineColor="transparent"
+                                    disabled={isViewMode}
+                                />
+                            </View>
+
+                            <PaperInput
+                                label="Occupation"
+                                value={occupation}
+                                onChangeText={(value) => !isViewMode && setOccupation(value)}
+                                error={!!errors.occupation}
+                                style={styles.inputContainer}
+                                mode="outlined"
+                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                underlineColor="transparent"
+                                activeUnderlineColor="transparent"
+                                disabled={isViewMode}
+                            />
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.categoryInput,
+                                    {
+                                        marginBottom: 16,
+                                        borderColor: errors.houseType ? '#ef4444' : houseType ? '#000000' : '#d1d5db' // red for error, black when selected, gray when empty
+                                    }
+                                ]}
+                                onPress={() => !isViewMode && setHouseTypeMenuVisible(true)}
+                                disabled={isViewMode}
+                            >
+                                <Info size={20} color="#6b7280" style={{ marginRight: 8 }} />
+                                <RNText style={[
+                                    styles.dropdownButtonText,
+                                    {
+                                        color: houseType ? '#374151' : '#000000', // Black for placeholder
+                                        paddingVertical: 12,
+                                        flex: 1
+                                    }
+                                ]}>
+                                    {houseType ? houseType : 'Select House Type'}
+                                </RNText>
+                            </TouchableOpacity>
+
+                            {/* Mayyathu Status Toggle */}
+                            <View style={styles.toggleContainer}>
+                                <View style={styles.toggleLabelContainer}>
+                                    <RNText style={styles.toggleLabel}>Mayyathu Fund Status</RNText>
+                                    <RNText style={styles.toggleDescription}>
+                                        {mayyathuStatus ? 'Enabled' : 'Disabled'}
+                                    </RNText>
+                                </View>
+                                <View style={styles.toggleSwitchContainer}>
+                                    <Switch
+                                        trackColor={{ false: '#767577', true: '#81b0ff' }}
+                                        thumbColor={mayyathuStatus ? '#059669' : '#f4f3f4'}
+                                        ios_backgroundColor="#3e3e3e"
+                                        onValueChange={(value) => {
+                                            if (!isViewMode) {
+                                                setMayyathuStatus(value);
+                                            }
+                                        }}
+                                        value={mayyathuStatus}
+                                        disabled={isViewMode}
+                                    />
+                                </View>
+                            </View>
+                        </PaperCard>
+
+                        <PaperCard style={styles.card}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View style={{ flex: 1 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Users size={18} color="#059669" />
+                                        <RNText style={styles.sectionTitle}>Family Members</RNText>
+                                    </View>
+                                    <RNText style={styles.sectionSubtitle}>Add family members associated with this account</RNText>
+                                </View>
+                                {!isViewMode && (
+                                    <PaperButton
+                                        mode="outlined"
+                                        onPress={handleAddFamilyMember}
+                                        style={{ borderRadius: 20, paddingHorizontal: 12 }}
+                                    >
+                                        <RNText style={{ fontWeight: '500' }}>+ Add</RNText>
+                                    </PaperButton>
+                                )}
+                            </View>
+
+                            {familyMembers.length === 0 ? (
+                                <View style={styles.noFamilyMembers}>
+                                    <RNText style={styles.noFamilyMembersText}>
+                                        No family members added yet. Tap "Add" to include family members.
+                                    </RNText>
+                                </View>
+                            ) : (
+                                <View>
+                                    {familyMembers.map((member, index) => (
+                                        <PaperCard key={index} style={styles.familyMemberCard}>
+                                            <View style={styles.familyMemberHeader}>
+                                                <RNText style={styles.familyMemberTitle}>
+                                                    Family Member {index + 1}
+                                                </RNText>
+                                                {!isViewMode && (
+                                                    <PaperButton
+                                                        mode="text"
+                                                        onPress={() => handleRemoveFamilyMember(index)}
+                                                        style={styles.removeButton}
+                                                    >
+                                                        <Trash2 size={16} color="#dc2626" /> {/* error600 */}
+                                                    </PaperButton>
+                                                )}
+                                            </View>
+
+                                            <View style={styles.familyMemberInputRow}>
+                                                <PaperInput
+                                                    label="Name"
+                                                    value={member.name}
+                                                    onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'name', value)}
+                                                    style={styles.familyMemberInput}
+                                                    mode="outlined"
+                                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                                    underlineColor="transparent"
+                                                    activeUnderlineColor="transparent"
+                                                    disabled={isViewMode}
+                                                />
+
+                                                <PaperInput
+                                                    label="Relation"
+                                                    value={member.relation}
+                                                    onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'relation', value)}
+                                                    style={styles.familyMemberInput2}
+                                                    mode="outlined"
+                                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                                    underlineColor="transparent"
+                                                    activeUnderlineColor="transparent"
+                                                    disabled={isViewMode}
+                                                />
+
+                                                <PaperInput
+                                                    label="Age"
+                                                    value={member.age}
+                                                    onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'age', value)}
+                                                    keyboardType="number-pad"
+                                                    style={styles.familyMemberInput3}
+                                                    mode="outlined"
+                                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
+                                                    underlineColor="transparent"
+                                                    activeUnderlineColor="transparent"
+                                                    disabled={isViewMode}
+                                                />
+                                            </View>
+                                        </PaperCard>
+                                    ))}
+                                </View>
+                            )}
+                        </PaperCard>
+
+                        <View style={styles.buttonContainer}>
+                            <PaperButton
+                                mode="outlined"
+                                onPress={() => navigation.goBack()}
+                                style={styles.button}
+                                textColor="#059669"
+                            >
+                                <RNText style={{ fontWeight: '500' }}>Cancel</RNText>
+                            </PaperButton>
                             {!isViewMode && (
                                 <PaperButton
-                                    mode="outlined"
-                                    onPress={handleAddFamilyMember}
-                                    style={{ borderRadius: 20, paddingHorizontal: 12 }}
+                                    mode="contained"
+                                    onPress={handleSubmit}
+                                    style={[styles.button, { backgroundColor: '#059669' }]}
+                                    disabled={loading}
+                                    labelStyle={{ color: '#fff', fontWeight: '500' }}
                                 >
-                                    <RNText style={{ fontWeight: '500' }}>+ Add</RNText>
+                                    <RNText style={{ color: '#fff', fontWeight: '500' }}>
+                                        {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Member' : 'Add Member')}
+                                    </RNText>
+                                </PaperButton>
+                            )}
+                            {isViewMode && (
+                                <PaperButton
+                                    mode="contained"
+                                    onPress={() => navigation.goBack()}
+                                    style={[styles.button, { backgroundColor: '#059669' }]}
+                                    labelStyle={{ color: '#fff', fontWeight: '500' }}
+                                >
+                                    <RNText style={{ color: '#fff', fontWeight: '500' }}>Close</RNText>
                                 </PaperButton>
                             )}
                         </View>
+                    </View>
+                </ScrollView>
 
-                        {familyMembers.length === 0 ? (
-                            <View style={styles.noFamilyMembers}>
-                                <RNText style={styles.noFamilyMembersText}>
-                                    No family members added yet. Tap "Add" to include family members.
-                                </RNText>
-                            </View>
-                        ) : (
-                            <View>
-                                {familyMembers.map((member, index) => (
-                                    <PaperCard key={index} style={styles.familyMemberCard}>
-                                        <View style={styles.familyMemberHeader}>
-                                            <RNText style={styles.familyMemberTitle}>
-                                                Family Member {index + 1}
-                                            </RNText>
-                                            {!isViewMode && (
-                                                <PaperButton
-                                                    mode="text"
-                                                    onPress={() => handleRemoveFamilyMember(index)}
-                                                    style={styles.removeButton}
-                                                >
-                                                    <Trash2 size={16} color="#dc2626" /> {/* error600 */}
-                                                </PaperButton>
-                                            )}
-                                        </View>
+                {/* Modal for house type options - using native Modal */}
+                <Modal
+                    visible={houseTypeMenuVisible}
+                    transparent={true}
+                    animationType="none"
+                    onRequestClose={() => setHouseTypeMenuVisible(false)}
+                >
+                    <TouchableOpacity
+                        style={styles.modalBackdrop}
+                        onPress={() => setHouseTypeMenuVisible(false)}
+                    >
+                        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                            onStartShouldSetResponder={() => true}
+                            onResponderRelease={() => setHouseTypeMenuVisible(false)} />
+                        <View style={styles.modalContent}>
+                            {HOUSE_TYPE_OPTIONS.map((option, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[styles.modalItem, houseType === option.value ? styles.selectedFilter : {}]}
+                                    onPress={() => {
+                                        setHouseType(option.value);
+                                        setHouseTypeMenuVisible(false);
+                                    }}
+                                >
+                                    <RNText style={styles.modalItemText}>{option.label}</RNText>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
+            </KeyboardAvoidingView>
 
-                                        <View style={styles.familyMemberInputRow}>
-                                            <PaperInput
-                                                label="Name"
-                                                value={member.name}
-                                                onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'name', value)}
-                                                style={styles.familyMemberInput}
-                                                mode="outlined"
-                                                theme={{ colors: { primary: '#059669' } }}
-                                                disabled={isViewMode}
-                                            />
-                                            {errors[`familyMember${index}Name`] && (
-                                                <RNText style={styles.errorText}>{errors[`familyMember${index}Name`]}</RNText>
-                                            )}
-
-                                            <PaperInput
-                                                label="Relation"
-                                                value={member.relation}
-                                                onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'relation', value)}
-                                                style={styles.familyMemberInput2}
-                                                mode="outlined"
-                                                theme={{ colors: { primary: '#059669' } }}
-                                                disabled={isViewMode}
-                                            />
-                                            {errors[`familyMember${index}Relation`] && (
-                                                <RNText style={styles.errorText}>{errors[`familyMember${index}Relation`]}</RNText>
-                                            )}
-
-                                            <PaperInput
-                                                label="Age"
-                                                value={member.age}
-                                                onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'age', value)}
-                                                keyboardType="number-pad"
-                                                style={styles.familyMemberInput3}
-                                                mode="outlined"
-                                                theme={{ colors: { primary: '#059669' } }}
-                                                disabled={isViewMode}
-                                            />
-                                            {errors[`familyMember${index}Age`] && (
-                                                <RNText style={styles.errorText}>{errors[`familyMember${index}Age`]}</RNText>
-                                            )}
-                                        </View>
-                                    </PaperCard>
-                                ))}
-                            </View>
-                        )}
-                    </PaperCard>
-
-                    <View style={styles.buttonContainer}>
-                        <PaperButton
-                            mode="outlined"
-                            onPress={() => navigation.goBack()}
-                            style={styles.button}
-                            textColor="#059669"
-                        >
-                            <RNText style={{ fontWeight: '500' }}>Cancel</RNText>
-                        </PaperButton>
-                        {!isViewMode && (
-                            <PaperButton
-                                mode="contained"
-                                onPress={handleSubmit}
-                                style={[styles.button, { backgroundColor: '#059669' }]}
-                                disabled={loading}
-                                labelStyle={{ color: '#fff', fontWeight: '500' }}
-                            >
-                                <RNText style={{ color: '#fff', fontWeight: '500' }}>
-                                    {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Member' : 'Add Member')}
-                                </RNText>
-                            </PaperButton>
-                        )}
-                        {isViewMode && (
-                            <PaperButton
-                                mode="contained"
-                                onPress={() => navigation.goBack()}
-                                style={[styles.button, { backgroundColor: '#059669' }]}
-                                labelStyle={{ color: '#fff', fontWeight: '500' }}
-                            >
-                                <RNText style={{ color: '#fff', fontWeight: '500' }}>Close</RNText>
-                            </PaperButton>
-                        )}
+            {/* Custom Alert */}
+            {alertVisible && (
+                <View style={styles.alertOverlay}>
+                    <View style={styles.alertContainer}>
+                        <View style={styles.alertHeader}>
+                            {alertType === 'success' && <CheckCircle size={24} color="#10B981" style={styles.alertIcon} />}
+                            {alertType === 'error' && <XCircle size={24} color="#EF4444" style={styles.alertIcon} />}
+                            {alertType === 'warning' && <AlertTriangle size={24} color="#F59E0B" style={styles.alertIcon} />}
+                            {alertType === 'info' && <Info size={24} color="#3B82F6" style={styles.alertIcon} />}
+                            <RNText style={styles.alertTitle}>{alertTitle}</RNText>
+                        </View>
+                        <RNText style={styles.alertMessage}>{alertMessage}</RNText>
+                        <View style={styles.alertButtonContainer}>
+                            {alertButtons.map((button, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[
+                                        styles.alertButton,
+                                        button.style === 'destructive' || button.style === 'cancel'
+                                            ? styles.alertButtonSecondary
+                                            : styles.alertButtonPrimary
+                                    ]}
+                                    onPress={() => {
+                                        if (button.onPress) {
+                                            button.onPress();
+                                        }
+                                        setAlertVisible(false);
+                                    }}
+                                >
+                                    <RNText
+                                        style={[
+                                            styles.alertButtonText,
+                                            (button.style === 'destructive' || button.style === 'cancel')
+                                            && styles.alertButtonSecondaryText
+                                        ]}
+                                    >
+                                        {button.text}
+                                    </RNText>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
                 </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            )}
+        </View>
     );
 }

@@ -229,16 +229,16 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     appName: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#1e293b',
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#2563eb',
         marginBottom: 24,
         textAlign: 'center',
     },
     title: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#1e293b', // Dark gray
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#143D30', // Forest green
         marginBottom: 24,
         textAlign: 'center',
     },

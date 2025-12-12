@@ -52,6 +52,11 @@ const memberSchema = new mongoose.Schema({
     match: [/^\d{12}$/, 'Please enter a valid 12-digit Aadhaar number'],
     unique: true
   },
+  occupation: {
+    type: String,
+    required: true,
+    trim: true
+  },
   registrationNumber: {
     type: String,
     required: true,
@@ -98,6 +103,7 @@ class MemberModel {
       age: savedMember.age,
       phone: savedMember.phone,
       adharNumber: savedMember.adharNumber,
+      occupation: savedMember.occupation,
       registrationNumber: savedMember.registrationNumber,
       houseType: savedMember.houseType,
       familyMembersCount: savedMember.familyMembersCount,
@@ -118,6 +124,7 @@ class MemberModel {
       age: member.age,
       phone: member.phone,
       adharNumber: member.adharNumber,
+      occupation: member.occupation,
       registrationNumber: member.registrationNumber,
       houseType: member.houseType,
       familyMembersCount: member.familyMembersCount,
@@ -139,6 +146,7 @@ class MemberModel {
       age: member.age,
       phone: member.phone,
       adharNumber: member.adharNumber,
+      occupation: member.occupation,
       registrationNumber: member.registrationNumber,
       houseType: member.houseType,
       familyMembersCount: member.familyMembersCount,
@@ -168,6 +176,7 @@ class MemberModel {
       age: updatedMember.age,
       phone: updatedMember.phone,
       adharNumber: updatedMember.adharNumber,
+      occupation: updatedMember.occupation,
       registrationNumber: updatedMember.registrationNumber,
       houseType: updatedMember.houseType,
       familyMembersCount: updatedMember.familyMembersCount,

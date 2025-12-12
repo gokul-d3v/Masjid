@@ -24,7 +24,7 @@ export default function ProfileScreen() {
     }, []);
 
     const handleEditProfile = () => {
-        navigation.navigate('EditProfile');
+        Alert.alert('Notice', 'Edit profile functionality is not available');
     };
 
     const handleLogout = async () => {

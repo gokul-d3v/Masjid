@@ -9,6 +9,7 @@ class MembersController {
                 age,
                 phone,
                 adharNumber,
+                occupation,
                 registrationNumber,
                 houseType,
                 familyMembersCount,
@@ -16,7 +17,7 @@ class MembersController {
             } = req.body;
 
             // Validation
-            if (!fullName || !age || !phone || !adharNumber || !registrationNumber || !houseType || !familyMembersCount) {
+            if (!fullName || !age || !phone || !adharNumber || !occupation || !registrationNumber || !houseType || !familyMembersCount) {
                 return res.status(400).json({ error: 'All required fields must be provided' });
             }
 
@@ -33,6 +34,11 @@ class MembersController {
             // Validate age
             if (age < 1 || age > 120) {
                 return res.status(400).json({ error: 'Age must be between 1 and 120' });
+            }
+
+            // Validate occupation
+            if (typeof occupation !== 'string' || occupation.trim().length < 2) {
+                return res.status(400).json({ error: 'Occupation must be at least 2 characters' });
             }
 
             // Validate family members
@@ -61,6 +67,7 @@ class MembersController {
                 age,
                 phone,
                 adharNumber,
+                occupation,
                 registrationNumber,
                 houseType,
                 familyMembersCount,
@@ -123,7 +130,7 @@ class MembersController {
             const updateData = req.body;
 
             // Sanitize update data to prevent updating fields that should not be updated
-            const allowedUpdates = ['fullName', 'age', 'phone', 'adharNumber', 'houseType', 'familyMembersCount', 'familyMembers', 'mayyathuStatus'];
+            const allowedUpdates = ['fullName', 'age', 'phone', 'adharNumber', 'occupation', 'houseType', 'familyMembersCount', 'familyMembers', 'mayyathuStatus'];
             const requestedUpdates = Object.keys(updateData);
 
             // Filter out disallowed updates to allow only valid ones

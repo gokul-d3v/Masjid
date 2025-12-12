@@ -14,7 +14,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import UserDetailScreen from './screens/UserDetailScreen';
 import AddCollectionScreen from './screens/AddCollectionScreen';
 import AddMemberScreen from './screens/AddMemberScreen';
-import EditProfileScreen from './screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,7 +39,6 @@ const AppContent = () => {
               <Stack.Screen name="UserDetail" component={UserDetailScreen} options={{ headerShown: true, title: 'User Details', headerStyle: { backgroundColor: '#10b981' }, headerTintColor: '#fff' }} />
               <Stack.Screen name="AddCollection" component={AddCollectionScreen} options={{ headerShown: false }} />
               <Stack.Screen name="AddMember" component={AddMemberScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: true, title: 'Edit Profile', headerStyle: { backgroundColor: '#10b981' }, headerTintColor: '#fff' }} />
             </>
           )}
         </Stack.Navigator>
