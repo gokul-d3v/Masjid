@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { FlatList, Text, View, TouchableOpacity, StyleSheet, Alert, RefreshControl, Modal, TextInput } from 'react-native';
-import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
+import { FlatList, Text, View, TouchableOpacity, StyleSheet, RefreshControl, Modal, Alert } from 'react-native';
+import { Card as PaperCard, Button as PaperButton, ActivityIndicator, TextInput as PaperInput, Dialog, Portal } from 'react-native-paper';
 import { dashboardService } from '../services/api';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, DollarSign, Calendar, CheckCircle, XCircle, AlertTriangle, Info, PlusCircle, IndianRupee, Filter, Search } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Swipeable } from 'react-native-gesture-handler'; // TODO: Replace with reanimated version when available
 import Header from '../components/Header';
 
@@ -15,10 +16,17 @@ export default function CollectionsScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMenuVisible, setFilterMenuVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState('all'); // 'all', 'paid', 'overdue', 'monthly_donation', 'mayyathu', 'general'
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
+
 
     const [allCollections, setAllCollections] = useState<any[]>([]); // Store all collections
     const [filteredCollections, setFilteredCollections] = useState<any[]>([]); // Store filtered/searched collections
+
+    // State for date filtering
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [showDateFilterModal, setShowDateFilterModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -129,7 +137,7 @@ export default function CollectionsScreen() {
             }
         } catch (error) {
             console.error('Error fetching collections:', error);
-            Alert.alert('Error', 'Failed to load collections');
+            showAlert('Error', 'Failed to load collections', 'error');
         } finally {
             if (pageNum === 1) {
                 setLoading(false);
@@ -142,21 +150,49 @@ export default function CollectionsScreen() {
         }
     };
 
-    const loadMoreCollections = async () => {
-        if (!hasMore || loadingMore) return; // Prevent multiple simultaneous requests
-        const nextPage = page + 1;
-        setPage(nextPage);
-        await fetchCollections(nextPage);
+    // Function to format date for display
+    const formatDateForDisplay = (date: Date | null) => {
+        if (!date) return '';
+        return date.toLocaleDateString('en-GB'); // Format as DD/MM/YYYY
     };
 
-    // Apply search and filter to the collections list
-    const applyFilters = (collectionsList = allCollections) => {
+    // Function to handle date selection from calendar
+    const handleDateChange = (event: any, selectedDate: Date | undefined, type: 'start' | 'end') => {
+        const currentDate = selectedDate || (type === 'start' ? startDate : endDate);
+        setShowStartDatePicker(false);
+        setShowEndDatePicker(false);
+
+        if (type === 'start') {
+            setStartDate(currentDate || null);
+        } else {
+            setEndDate(currentDate || null);
+        }
+    };
+
+    // Function to apply date filter
+    const applyDateFilter = (collectionsList = allCollections) => {
         let filtered = [...collectionsList];
+
+        if (startDate) {
+            filtered = filtered.filter(collection => {
+                const collectionDate = new Date(collection.date);
+                return collectionDate >= startDate;
+            });
+        }
+
+        if (endDate) {
+            filtered = filtered.filter(collection => {
+                const collectionDate = new Date(collection.date);
+                return collectionDate <= endDate;
+            });
+        }
+
+        // After date filtering, apply the existing search and category filters
+        let finalFiltered = [...filtered];
 
         // Apply search filter
         if (searchQuery) {
-            filtered = filtered.filter(collection =>
-                collection.collectedBy?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            finalFiltered = finalFiltered.filter(collection =>
                 collection.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 collection.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 collection.amount.toString().includes(searchQuery)
@@ -165,39 +201,59 @@ export default function CollectionsScreen() {
 
         // Apply category filter
         if (selectedFilter !== 'all') {
-            if (selectedFilter === 'paid') {
-                // 'paid' filter for collections means recent collections (within 30 days)
-                filtered = filtered.filter(collection => collection.paymentStatus === 'paid');
-            } else if (selectedFilter === 'overdue') {
-                // 'overdue' filter for collections means old collections (older than 30 days)
-                filtered = filtered.filter(collection => collection.paymentStatus === 'overdue');
-            } else if (selectedFilter === 'monthly_donation' || selectedFilter === 'mayyathu' || selectedFilter === 'general') {
-                // Specific category filter
-                filtered = filtered.filter(collection => collection.category === selectedFilter);
+            if (selectedFilter === 'monthly_donation') {
+                // Monthly Fund filter
+                finalFiltered = finalFiltered.filter(collection => collection.category === 'monthly_donation');
+            } else if (selectedFilter === 'mayyathu') {
+                // Mayyathu Fund filter
+                finalFiltered = finalFiltered.filter(collection => collection.category === 'mayyathu');
             }
         }
 
-        setFilteredCollections(filtered);
+        setFilteredCollections(finalFiltered);
     };
+
+    // Function to clear date filters
+    const clearDateFilters = () => {
+        setStartDate(null);
+        setEndDate(null);
+        applyFilters(allCollections); // Reapply other filters without date filters
+    };
+
+    // Modified applyFilters to also handle date filtering
+    const applyFilters = (collectionsList = allCollections) => {
+        applyDateFilter(collectionsList);
+    };
+
+    const loadMoreCollections = async () => {
+        if (!hasMore || loadingMore) return; // Prevent multiple simultaneous requests
+        const nextPage = page + 1;
+        setPage(nextPage);
+        await fetchCollections(nextPage);
+    };
+
+
 
     // Handle search query change
     const handleSearch = (query: string) => {
         setSearchQuery(query);
-        // Reset pagination when search changes
-        if (query !== searchQuery) {
-            setPage(1);
-            fetchCollections(1);
-        }
     };
 
-    // Use the existing filter selection function definition
+    // Handle filter selection
     const handleFilterSelect = (filter: string) => {
         setSelectedFilter(filter);
         setFilterMenuVisible(false);
-        // Reset pagination when filter changes
-        setPage(1);
-        fetchCollections(1);
     };
+
+    // Debounce search and filter changes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setPage(1);
+            fetchCollections(1);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, selectedFilter]);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -249,7 +305,7 @@ export default function CollectionsScreen() {
             applyFilters(updatedCollections); // Reapply filters with updated data
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to delete collection');
+            showAlert('Error', 'Failed to delete collection', 'error');
         }
     };
 
@@ -382,7 +438,7 @@ export default function CollectionsScreen() {
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: '#10b981',
+            backgroundColor: '#025937',
             justifyContent: 'center',
             alignItems: 'center',
             marginRight: 12,
@@ -431,7 +487,7 @@ export default function CollectionsScreen() {
         },
         amountText: {
             fontWeight: 'bold',
-            color: '#10b981',
+            color: '#025937',
         },
         emptyContainer: {
             flex: 1,
@@ -451,6 +507,13 @@ export default function CollectionsScreen() {
             backgroundColor: 'transparent',
             zIndex: 1000,
             width: 150,
+        },
+        centeredModalOverlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
         },
         modalContent: {
             backgroundColor: 'white',
@@ -485,6 +548,47 @@ export default function CollectionsScreen() {
             width: 80,
             margin: 4,
             marginLeft: 4,
+        },
+        dateButton: {
+            backgroundColor: '#f9fafb',
+            padding: 12,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#d1d5db',
+            alignItems: 'center',
+        },
+        tabsContainer: {
+            flexDirection: 'row',
+            backgroundColor: 'white',
+            borderRadius: 8,
+            padding: 4,
+            marginHorizontal: 16,
+            marginTop: 12,
+            marginBottom: 12,
+            elevation: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 2,
+        },
+        tab: {
+            flex: 1,
+            paddingVertical: 10,
+            paddingHorizontal: 8,
+            alignItems: 'center',
+            borderRadius: 6,
+        },
+        activeTab: {
+            backgroundColor: '#025937',
+        },
+        tabText: {
+            fontSize: 12,
+            fontWeight: '500',
+            color: '#1f2937',
+        },
+        activeTabText: {
+            color: 'white',
+            fontWeight: '600',
         },
         alertOverlay: {
             position: 'absolute',
@@ -547,162 +651,203 @@ export default function CollectionsScreen() {
         alertButtonSecondaryText: {
             color: '#374151',
         },
-        searchBox: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderWidth: 1,
-            borderColor: isSearchFocused ? '#10b981' : '#d1d5db',
-            borderRadius: 4,
-            height: 40,
-            backgroundColor: 'transparent',
-            marginRight: 8,
-            paddingHorizontal: 8
-        },
-        searchInput: {
-            flex: 1,
-            marginLeft: 8,
-            fontSize: 14,
-            color: '#1f2937'
-        },
+
     });
 
-    if (loading && !refreshing) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#10b981" />
-                <Text style={{ marginTop: 10, color: '#6b7280' }}>Loading collections...</Text>
-            </View>
-        );
-    }
+
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             <Header
-                title="Collections"
+                title={startDate || endDate ? "Collections (Filtered)" : "Collections"}
                 subtitle={`${filteredCollections.length} ${filteredCollections.length === 1 ? 'collection' : 'collections'}`}
                 rightComponent={
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('AddCollection', { mode: 'create' })}
-                        style={{ padding: 8, marginRight: 6 }}  // Reduced margin to move 2px more right
-                    >
-                        <PlusCircle size={20} color="#10b981" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity
+                            onPress={() => setShowDateFilterModal(true)}
+                            style={{ padding: 8 }}
+                        >
+                            <Calendar size={20} color="#025937" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('AddCollection', { mode: 'create' })}
+                            style={{ padding: 8, marginRight: 6 }}
+                        >
+                            <PlusCircle size={20} color="#025937" />
+                        </TouchableOpacity>
+                    </View>
                 }
             />
 
             {/* Search Bar and Filter Button */}
             <View style={styles.searchContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={styles.searchBox}>
-                        <Search size={16} color="#9ca3af" />
-                        <TextInput
-                            placeholder="Search collections..."
-                            value={searchQuery}
-                            onChangeText={handleSearch}
-                            onFocus={() => setIsSearchFocused(true)}
-                            onBlur={() => setIsSearchFocused(false)}
-                            style={styles.searchInput}
-                        />
-                    </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <PaperInput
+                        placeholder="Search collections..."
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                        mode="outlined"
+                        theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                        textColor="#000000"
+                        activeOutlineColor="#025937"
+                        style={{ flex: 1, height: 45, backgroundColor: 'white' }}
+                        outlineStyle={{ borderRadius: 4 }}
+                        contentStyle={{ paddingVertical: 0 }}
+                        left={<PaperInput.Icon icon={() => <Search size={20} color="#9ca3af" />} />}
+                    />
+                </View>
+
+                {/* Filter Tabs */}
+                <View style={styles.tabsContainer}>
                     <TouchableOpacity
-                        onPress={() => setFilterMenuVisible(true)}
-                        style={{ padding: 12 }}
+                        style={[styles.tab, selectedFilter === 'all' && styles.activeTab]}
+                        onPress={() => handleFilterSelect('all')}
                     >
-                        <Filter size={20} color="#6b7280" />
+                        <Text style={[styles.tabText, selectedFilter === 'all' && styles.activeTabText]}>All</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, selectedFilter === 'mayyathu' && styles.activeTab]}
+                        onPress={() => handleFilterSelect('mayyathu')}
+                    >
+                        <Text style={[styles.tabText, selectedFilter === 'mayyathu' && styles.activeTabText]}>Mayyathu Fund</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, selectedFilter === 'monthly_donation' && styles.activeTab]}
+                        onPress={() => handleFilterSelect('monthly_donation')}
+                    >
+                        <Text style={[styles.tabText, selectedFilter === 'monthly_donation' && styles.activeTabText]}>Monthly Fund</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Modal for filter options - using native Modal */}
+                {/* Date Filter Modal */}
                 <Modal
-                    visible={filterMenuVisible}
+                    visible={showDateFilterModal}
                     transparent={true}
-                    animationType="none"
-                    onRequestClose={() => setFilterMenuVisible(false)}
+                    animationType="fade"
+                    onRequestClose={() => setShowDateFilterModal(false)}
                 >
                     <TouchableOpacity
-                        style={styles.modalOverlay}
-                        onPress={() => setFilterMenuVisible(false)}
+                        style={styles.centeredModalOverlay}
+                        onPress={() => setShowDateFilterModal(false)}
                     >
                         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                             onStartShouldSetResponder={() => true}
-                            onResponderRelease={() => setFilterMenuVisible(false)} />
-                        <View style={styles.modalContent}>
-                            <TouchableOpacity
-                                style={[styles.modalItem, selectedFilter === 'all' ? styles.selectedFilter : {}]}
-                                onPress={() => handleFilterSelect('all')}
-                            >
-                                <Text style={styles.modalItemText}>All Collections</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalItem, selectedFilter === 'paid' ? styles.selectedFilter : {}]}
-                                onPress={() => handleFilterSelect('paid')}
-                            >
-                                <Text style={styles.modalItemText}>Recent (30 days)</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalItem, selectedFilter === 'overdue' ? styles.selectedFilter : {}]}
-                                onPress={() => handleFilterSelect('overdue')}
-                            >
-                                <Text style={styles.modalItemText}>Old (30+ days)</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalItem, selectedFilter === 'monthly_donation' ? styles.selectedFilter : {}]}
-                                onPress={() => handleFilterSelect('monthly_donation')}
-                            >
-                                <Text style={styles.modalItemText}>Monthly Fund</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalItem, selectedFilter === 'mayyathu' ? styles.selectedFilter : {}]}
-                                onPress={() => handleFilterSelect('mayyathu')}
-                            >
-                                <Text style={styles.modalItemText}>Mayyathu Fund</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalItem, selectedFilter === 'general' ? styles.selectedFilter : {}]}
-                                onPress={() => handleFilterSelect('general')}
-                            >
-                                <Text style={styles.modalItemText}>General</Text>
-                            </TouchableOpacity>
+                            onResponderRelease={() => setShowDateFilterModal(false)} />
+                        <View style={[styles.modalContent, { width: '80%', maxWidth: 350 }]}>
+                            <View style={{ padding: 16 }}>
+                                <Text style={[styles.modalItemText, { fontSize: 18, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' }]}>
+                                    Filter by Date
+                                </Text>
+
+                                {/* Start Date */}
+                                <TouchableOpacity
+                                    style={[styles.dateButton, { marginBottom: 16 }]}
+                                    onPress={() => setShowStartDatePicker(true)}
+                                >
+                                    <Text style={{ color: '#1f2937', fontSize: 16 }}>
+                                        {startDate ? `Start: ${formatDateForDisplay(startDate)}` : 'Select Start Date'}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                {/* End Date */}
+                                <TouchableOpacity
+                                    style={[styles.dateButton, { marginBottom: 16 }]}
+                                    onPress={() => setShowEndDatePicker(true)}
+                                >
+                                    <Text style={{ color: '#1f2937', fontSize: 16 }}>
+                                        {endDate ? `End: ${formatDateForDisplay(endDate)}` : 'Select End Date'}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                {/* Date Picker components */}
+                                {showStartDatePicker && (
+                                    <DateTimePicker
+                                        value={startDate || new Date()}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(event: any, date?: Date) => handleDateChange(event, date, 'start')}
+                                    />
+                                )}
+
+                                {showEndDatePicker && (
+                                    <DateTimePicker
+                                        value={endDate || new Date()}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(event: any, date?: Date) => handleDateChange(event, date, 'end')}
+                                    />
+                                )}
+
+                                {/* Action Buttons */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
+                                    <PaperButton
+                                        mode="outlined"
+                                        onPress={() => {
+                                            clearDateFilters();
+                                            setShowDateFilterModal(false);
+                                        }}
+                                        style={{ flex: 1, marginRight: 8 }}
+                                    >
+                                        Clear
+                                    </PaperButton>
+                                    <PaperButton
+                                        mode="contained"
+                                        onPress={() => {
+                                            applyDateFilter();
+                                            setShowDateFilterModal(false);
+                                        }}
+                                        style={{ flex: 1, marginLeft: 8, backgroundColor: '#059669' }}
+                                    >
+                                        Apply
+                                    </PaperButton>
+                                </View>
+                            </View>
                         </View>
                     </TouchableOpacity>
                 </Modal>
             </View>
 
             <View style={{ flex: 1, padding: 15 }}>
-                <FlatList
-                    data={filteredCollections}
-                    renderItem={renderCollectionItem}
-                    keyExtractor={(item) => item._id || item.id}
-                    onRefresh={onRefresh}
-                    refreshing={refreshing}
-                    onEndReached={loadMoreCollections}
-                    onEndReachedThreshold={0.1}
-                    ListFooterComponent={
-                        loadingMore ? (
-                            <View style={{ padding: 20, alignItems: 'center' }}>
-                                <ActivityIndicator size="large" color="#10b981" />
+                {loading && !refreshing ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
+                        <ActivityIndicator size="large" color="#025937" />
+                        <Text style={{ marginTop: 10, color: '#6b7280' }}>Loading collections...</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={filteredCollections}
+                        renderItem={renderCollectionItem}
+                        keyExtractor={(item) => item._id || item.id}
+                        onRefresh={onRefresh}
+                        refreshing={refreshing}
+                        onEndReached={loadMoreCollections}
+                        onEndReachedThreshold={0.1}
+                        ListFooterComponent={
+                            loadingMore ? (
+                                <View style={{ padding: 20, alignItems: 'center' }}>
+                                    <ActivityIndicator size="large" color="#025937" />
+                                </View>
+                            ) : null
+                        }
+                        ListEmptyComponent={
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>
+                                    {searchQuery || selectedFilter !== 'all'
+                                        ? 'No collections found matching your criteria'
+                                        : 'No collections found. Add your first collection!'}
+                                </Text>
+                                {!(searchQuery || selectedFilter !== 'all') && (
+                                    <TouchableOpacity
+                                        style={[styles.addButton, { marginTop: 16 }]}
+                                        onPress={() => navigation.navigate('AddCollection', { mode: 'create' })}
+                                    >
+                                        <Text style={{ color: '#025937', fontWeight: 'bold' }}>Add Collection</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
-                        ) : null
-                    }
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>
-                                {searchQuery || selectedFilter !== 'all'
-                                    ? 'No collections found matching your criteria'
-                                    : 'No collections found. Add your first collection!'}
-                            </Text>
-                            {!(searchQuery || selectedFilter !== 'all') && (
-                                <TouchableOpacity
-                                    style={[styles.addButton, { marginTop: 16 }]}
-                                    onPress={() => navigation.navigate('AddCollection', { mode: 'create' })}
-                                >
-                                    <Text style={{ color: '#10b981', fontWeight: 'bold' }}>Add Collection</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    }
-                />
+                        }
+                    />
+                )}
             </View>
 
             {showCustomAlert && (

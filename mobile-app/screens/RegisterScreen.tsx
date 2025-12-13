@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
-import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Card as PaperCard, Button as PaperButton, ActivityIndicator, TextInput as PaperTextInput } from 'react-native-paper';
 import { authService } from '../services/api';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from 'react-native-paper';
 import Header from '../components/Header';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Animatable from 'react-native-animatable';
+import { User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react-native';
 
 export default function RegisterScreen() {
     const [name, setName] = useState('');
@@ -14,6 +14,8 @@ export default function RegisterScreen() {
     const insets = useSafeAreaInsets();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<any>({});
@@ -68,39 +70,33 @@ export default function RegisterScreen() {
             paddingTop: 0,
         },
         content: {
-            flex: 1,
+            flexGrow: 1,
             paddingHorizontal: 20,
             paddingTop: 10,
+            paddingBottom: 20,
         },
         inputContainer: {
             marginBottom: 16,
         },
-        label: {
-            fontSize: 16,
-            fontWeight: '500',
-            color: '#374151',
-            marginBottom: 8,
-        },
         input: {
-            borderWidth: 1,
-            borderColor: '#d1d5db',
-            borderRadius: 8,
-            padding: 12,
-            fontSize: 16,
             backgroundColor: 'white',
         },
         errorText: {
             color: '#ef4444',
             fontSize: 12,
             marginTop: 4,
+            marginLeft: 4,
         },
         buttonContainer: {
             marginTop: 20,
+            backgroundColor: '#025937',
+            paddingVertical: 6,
         },
         loginContainer: {
             flexDirection: 'row',
             justifyContent: 'center',
             marginTop: 20,
+            marginBottom: 20,
         },
         loginText: {
             fontSize: 14,
@@ -108,95 +104,129 @@ export default function RegisterScreen() {
         },
         loginLink: {
             fontSize: 14,
-            color: '#10b981',
-            fontWeight: '500',
+            color: '#025937',
+            fontWeight: '600',
         },
+        card: {
+            padding: 20,
+            backgroundColor: 'white',
+            borderRadius: 12,
+            elevation: 2,
+        }
     });
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
-            <ScrollView contentContainerStyle={styles.content}>
-                <Header
-                    title="Create Account"
-                    subtitle="Register to get started"
-                />
+            <Header
+                title="Create Account"
+                subtitle="Register to get started"
+            />
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                <Animatable.View animation="fadeInUp" duration={800} style={styles.card}>
 
-                <PaperCard style={{ padding: 20, backgroundColor: 'white' }}>
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Full Name</Text>
-                        <TextInput
-                            style={styles.input}
+                        <PaperTextInput
+                            mode="outlined"
+                            label="Full Name"
                             value={name}
                             onChangeText={setName}
-                            placeholder="Enter your full name"
-                            autoCapitalize="words"
+                            style={styles.input}
+                            activeOutlineColor="#025937"
+                            outlineColor="#025937"
+                            textColor="#000000"
+                            left={<PaperTextInput.Icon icon={() => <User size={20} color="#6b7280" />} />}
+                            error={!!errors.name}
                         />
                         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
                     </View>
 
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Email</Text>
-                        <TextInput
-                            style={styles.input}
+                        <PaperTextInput
+                            mode="outlined"
+                            label="Email"
                             value={email}
                             onChangeText={setEmail}
-                            placeholder="Enter your email"
+                            style={styles.input}
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            activeOutlineColor="#025937"
+                            outlineColor="#025937"
+                            textColor="#000000"
+                            left={<PaperTextInput.Icon icon={() => <Mail size={20} color="#6b7280" />} />}
+                            error={!!errors.email}
                         />
                         {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
                     </View>
 
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Phone</Text>
-                        <TextInput
-                            style={styles.input}
+                        <PaperTextInput
+                            mode="outlined"
+                            label="Phone"
                             value={phone}
                             onChangeText={setPhone}
-                            placeholder="Enter your phone"
+                            style={styles.input}
                             keyboardType="phone-pad"
+                            activeOutlineColor="#025937"
+                            outlineColor="#025937"
+                            textColor="#000000"
+                            left={<PaperTextInput.Icon icon={() => <Phone size={20} color="#6b7280" />} />}
+                            error={!!errors.phone}
                         />
                         {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
                     </View>
 
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Password</Text>
-                        <TextInput
-                            style={styles.input}
+                        <PaperTextInput
+                            mode="outlined"
+                            label="Password"
                             value={password}
                             onChangeText={setPassword}
-                            placeholder="Enter your password"
-                            secureTextEntry
+                            style={styles.input}
+                            secureTextEntry={!passwordVisible}
+                            activeOutlineColor="#025937"
+                            outlineColor="#025937"
+                            textColor="#000000"
+                            left={<PaperTextInput.Icon icon={() => <Lock size={20} color="#6b7280" />} />}
+                            right={<PaperTextInput.Icon
+                                icon={passwordVisible ? 'eye-off' : 'eye'}
+                                onPress={() => setPasswordVisible(!passwordVisible)}
+                            />}
+                            error={!!errors.password}
                         />
                         {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
                     </View>
 
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Confirm Password</Text>
-                        <TextInput
-                            style={styles.input}
+                        <PaperTextInput
+                            mode="outlined"
+                            label="Confirm Password"
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
-                            placeholder="Confirm your password"
-                            secureTextEntry
+                            style={styles.input}
+                            secureTextEntry={!confirmPasswordVisible}
+                            activeOutlineColor="#025937"
+                            outlineColor="#025937"
+                            textColor="#000000"
+                            left={<PaperTextInput.Icon icon={() => <Lock size={20} color="#6b7280" />} />}
+                            right={<PaperTextInput.Icon
+                                icon={confirmPasswordVisible ? 'eye-off' : 'eye'}
+                                onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                            />}
+                            error={!!errors.confirmPassword}
                         />
                         {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
                     </View>
 
                     <PaperButton
+                        mode="contained"
                         style={styles.buttonContainer}
                         onPress={handleRegister}
                         disabled={loading}
+                        labelStyle={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}
                     >
-                        {loading ? (
-                            <ActivityIndicator color="white" />
-                        ) : (
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                                Sign Up
-                            </Text>
-                        )}
+                        {loading ? 'Creating Account...' : 'Sign Up'}
                     </PaperButton>
-                </PaperCard>
+                </Animatable.View>
 
                 <View style={styles.loginContainer}>
                     <Text style={styles.loginText}>Already have an account? </Text>

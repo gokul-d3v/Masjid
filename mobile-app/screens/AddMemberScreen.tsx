@@ -93,7 +93,7 @@ export default function AddMemberScreen() {
                 setHouseType(item.houseType || '');
                 setOccupation(item.occupation || '');
                 // Convert family member ages to strings for proper input display
-                const familyMembersWithAgeStrings = (item.familyMembers || []).map(fm => ({
+                const familyMembersWithAgeStrings = (item.familyMembers || []).map((fm: any) => ({
                     ...fm,
                     age: fm.age?.toString() || ''
                 }));
@@ -716,9 +716,9 @@ export default function AddMemberScreen() {
                                 error={!!errors.fullName}
                                 style={styles.inputContainer}
                                 mode="outlined"
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
+                                theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                textColor="#000000"
+                                activeOutlineColor="#025937"
                                 disabled={isViewMode}
                             />
 
@@ -731,9 +731,9 @@ export default function AddMemberScreen() {
                                     error={!!errors.age}
                                     style={styles.halfInput}
                                     mode="outlined"
-                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                    underlineColor="transparent"
-                                    activeUnderlineColor="transparent"
+                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                    textColor="#000000"
+                                    activeOutlineColor="#025937"
                                     disabled={isViewMode}
                                 />
 
@@ -746,9 +746,9 @@ export default function AddMemberScreen() {
                                     error={!!errors.phone}
                                     style={styles.halfInput}
                                     mode="outlined"
-                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                    underlineColor="transparent"
-                                    activeUnderlineColor="transparent"
+                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                    textColor="#000000"
+                                    activeOutlineColor="#025937"
                                     disabled={isViewMode}
                                 />
                             </View>
@@ -763,9 +763,9 @@ export default function AddMemberScreen() {
                                     error={!!errors.adharNumber}
                                     style={styles.halfInput}
                                     mode="outlined"
-                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                    underlineColor="transparent"
-                                    activeUnderlineColor="transparent"
+                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                    textColor="#000000"
+                                    activeOutlineColor="#025937"
                                     disabled={isViewMode}
                                 />
 
@@ -776,9 +776,9 @@ export default function AddMemberScreen() {
                                     error={!!errors.registrationNumber}
                                     style={styles.halfInput}
                                     mode="outlined"
-                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                    underlineColor="transparent"
-                                    activeUnderlineColor="transparent"
+                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                    textColor="#000000"
+                                    activeOutlineColor="#025937"
                                     disabled={isViewMode}
                                 />
                             </View>
@@ -790,9 +790,9 @@ export default function AddMemberScreen() {
                                 error={!!errors.occupation}
                                 style={styles.inputContainer}
                                 mode="outlined"
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
+                                theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                textColor="#000000"
+                                activeOutlineColor="#025937"
                                 disabled={isViewMode}
                             />
 
@@ -897,9 +897,9 @@ export default function AddMemberScreen() {
                                                     onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'name', value)}
                                                     style={styles.familyMemberInput}
                                                     mode="outlined"
-                                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                                    underlineColor="transparent"
-                                                    activeUnderlineColor="transparent"
+                                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                                    textColor="#000000"
+                                                    activeOutlineColor="#025937"
                                                     disabled={isViewMode}
                                                 />
 
@@ -909,9 +909,9 @@ export default function AddMemberScreen() {
                                                     onChangeText={(value) => !isViewMode && handleFamilyMemberChange(index, 'relation', value)}
                                                     style={styles.familyMemberInput2}
                                                     mode="outlined"
-                                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                                    underlineColor="transparent"
-                                                    activeUnderlineColor="transparent"
+                                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                                    textColor="#000000"
+                                                    activeOutlineColor="#025937"
                                                     disabled={isViewMode}
                                                 />
 
@@ -922,9 +922,9 @@ export default function AddMemberScreen() {
                                                     keyboardType="number-pad"
                                                     style={styles.familyMemberInput3}
                                                     mode="outlined"
-                                                    theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                                    underlineColor="transparent"
-                                                    activeUnderlineColor="transparent"
+                                                    theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                                    textColor="#000000"
+                                                    activeOutlineColor="#025937"
                                                     disabled={isViewMode}
                                                 />
                                             </View>
@@ -1007,7 +1007,7 @@ export default function AddMemberScreen() {
                 <View style={styles.alertOverlay}>
                     <View style={styles.alertContainer}>
                         <View style={styles.alertHeader}>
-                            {alertType === 'success' && <CheckCircle size={24} color="#10B981" style={styles.alertIcon} />}
+                            {alertType === 'success' && <CheckCircle size={24} color="#025937" style={styles.alertIcon} />}
                             {alertType === 'error' && <XCircle size={24} color="#EF4444" style={styles.alertIcon} />}
                             {alertType === 'warning' && <AlertTriangle size={24} color="#F59E0B" style={styles.alertIcon} />}
                             {alertType === 'info' && <Info size={24} color="#3B82F6" style={styles.alertIcon} />}

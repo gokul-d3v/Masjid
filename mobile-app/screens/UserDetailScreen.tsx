@@ -66,7 +66,7 @@ export default function UserDetailScreen() {
             width: 80,
             height: 80,
             borderRadius: 40,
-            backgroundColor: '#10b981',
+            backgroundColor: '#025937',
             justifyContent: 'center',
             alignItems: 'center',
             alignSelf: 'center',

@@ -4,11 +4,30 @@ import { Card as PaperCard, Button as PaperButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { User, Mail, Phone, Briefcase, Calendar, Edit3, LogOut } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import AlertBox from '../components/AlertBox';
 
 export default function ProfileScreen() {
     const [profileData, setProfileData] = useState<any>(null);
     const { signOut } = useAuth(); // Get signOut from AuthContext
     const navigation = useNavigation<any>();
+
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertProps, setAlertProps] = useState({
+        title: '',
+        message: '',
+        type: 'info' as 'success' | 'error' | 'warning' | 'info',
+        buttons: [{ text: 'OK' } as { text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }]
+    });
+
+    const showAlert = (
+        title: string,
+        message: string,
+        type: 'success' | 'error' | 'warning' | 'info' = 'info',
+        buttons: Array<{ text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }> = [{ text: 'OK' }]
+    ) => {
+        setAlertProps({ title, message, type, buttons });
+        setAlertVisible(true);
+    };
 
     useEffect(() => {
         // In a real app, this would fetch user profile data
@@ -33,7 +52,7 @@ export default function ProfileScreen() {
             // The App component will automatically redirect to Auth navigator since token is now removed
         } catch (error) {
             console.error('Logout error:', error);
-            Alert.alert('Error', 'Failed to logout. Please try again.');
+            showAlert('Error', 'Failed to logout. Please try again.', 'error');
         }
     };
 
@@ -193,6 +212,14 @@ export default function ProfileScreen() {
                     <Text style={styles.buttonText}>Logout</Text>
                 </PaperButton>
             </View>
+            <AlertBox
+                visible={alertVisible}
+                title={alertProps.title}
+                message={alertProps.message}
+                type={alertProps.type}
+                buttons={alertProps.buttons}
+                onClose={() => setAlertVisible(false)}
+            />
         </ScrollView>
     );
 }

@@ -1,13 +1,9 @@
 {
   "build": {
-    "internal-android": {
+    "preview": {
       "android": {
-        "distribution": "internal"
-      },
-      "ios": {
-        "distribution": "internal"
+        "buildType": "apk"
       }
-    },
-    "production": {}
+    }
   }
 }

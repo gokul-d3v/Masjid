@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card as PaperCard, Button as PaperButton, ActivityIndicator } from 'react-native-paper';
 import { dashboardService } from '../services/api';
 import { RefreshControl } from 'react-native';
@@ -8,15 +8,34 @@ import { Plus, Users, DollarSign, IndianRupee, Calendar, TrendingUp, LogOut } fr
 import { useTheme } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
+import AlertBox from '../components/AlertBox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Animatable from 'react-native-animatable';
 
 export default function DashboardScreen() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertProps, setAlertProps] = useState({
+        title: '',
+        message: '',
+        type: 'info' as 'success' | 'error' | 'warning' | 'info',
+        buttons: [{ text: 'OK' }]
+    });
     const navigation = useNavigation<any>();
     const { signOut } = useAuth();
     const insets = useSafeAreaInsets();
+
+    const showAlert = (
+        title: string,
+        message: string,
+        type: 'success' | 'error' | 'warning' | 'info' = 'info',
+        buttons = [{ text: 'OK' }]
+    ) => {
+        setAlertProps({ title, message, type, buttons });
+        setAlertVisible(true);
+    };
 
     const fetchStats = async () => {
         try {
@@ -24,7 +43,7 @@ export default function DashboardScreen() {
             setStats(response.data);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to load dashboard data');
+            showAlert('Error', 'Failed to load dashboard data', 'error');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -202,14 +221,17 @@ export default function DashboardScreen() {
                     }
                 />
 
-                <View style={styles.statsContainer}>
+                <Animatable.View animation="fadeInDown" duration={800} delay={300} style={styles.statsContainer}>
                     {[
-                        { key: 'total-members', label: 'Total Members', value: stats?.totalUsers || 0, icon: Users, color: "#10b981" },
+                        { key: 'total-members', label: 'Total Members', value: stats?.totalUsers || 0, icon: Users, color: "#025937" },
                         { key: 'total-collected', label: 'Total Collected', value: `₹${(stats?.totalMoneyCollected || 0).toLocaleString()}`, icon: IndianRupee, color: "#059669" },
                         { key: 'mayyathu-fund', label: 'Mayyathu Fund', value: `₹${(stats?.mayyathuFundCollected || 0).toLocaleString()}`, icon: DollarSign, color: "#047857" },
                         { key: 'monthly-donations', label: 'Monthly Donations', value: `₹${(stats?.monthlyDonationsCollected || 0).toLocaleString()}`, icon: Calendar, color: "#16a34a" },
-                    ].map((stat) => (
-                        <View key={stat.key} style={styles.statCard}>
+                    ].map((stat, index) => (
+                        <View
+                            key={stat.key}
+                            style={styles.statCard}
+                        >
                             <View style={styles.statCardContent}>
                                 <View style={styles.statHeader}>
                                     <View style={[styles.iconContainer, { backgroundColor: stat.color + '10' }]}>
@@ -224,9 +246,14 @@ export default function DashboardScreen() {
                             </View>
                         </View>
                     ))}
-                </View>
+                </Animatable.View>
 
-                <PaperCard style={styles.recentCard}>
+                <Animatable.View
+                    animation="fadeInUp"
+                    duration={800}
+                    delay={600}
+                    style={styles.recentCard}
+                >
                     <View style={styles.recentHeader}>
                         <Text style={styles.recentTitle}>Recent Collections</Text>
                         <PaperButton
@@ -241,7 +268,10 @@ export default function DashboardScreen() {
                     {stats?.recentCollections && stats.recentCollections.length > 0 ? (
                         <View>
                             {stats.recentCollections.slice(0, 5).map((collection: any, index: number) => (
-                                <View key={collection._id || `collection-${index}`} style={styles.collectionItem}>
+                                <View
+                                    key={collection._id || `collection-${index}`}
+                                    style={styles.collectionItem}
+                                >
                                     <Text style={styles.collectionDescription}>{collection.description}</Text>
                                     <View style={styles.collectionDetails}>
                                         <Text style={styles.detailText}>
@@ -262,8 +292,17 @@ export default function DashboardScreen() {
                             <Text style={styles.noCollectionsText}>No recent collections</Text>
                         </View>
                     )}
-                </PaperCard>
+                </Animatable.View>
             </ScrollView>
+
+            <AlertBox
+                visible={alertVisible}
+                title={alertProps.title}
+                message={alertProps.message}
+                type={alertProps.type}
+                buttons={alertProps.buttons}
+                onClose={() => setAlertVisible(false)}
+            />
         </View>
     );
 }

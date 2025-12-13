@@ -6,25 +6,16 @@ import DashboardScreen from '../screens/DashboardScreen';
 import MembersListScreen from '../screens/MembersListScreen';
 import CollectionsScreen from '../screens/CollectionsScreen';
 import MuslimCalendarScreen from '../screens/MuslimCalendarScreen';
+import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainNavigator() {
     return (
         <Tab.Navigator
+            tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#10b981', // green500
-                tabBarInactiveTintColor: '#9ca3af', // coolGray400
-                tabBarStyle: {
-                    paddingBottom: 25,
-                    paddingTop: 10,
-                    height: 80,
-                },
-                tabBarLabelStyle: {
-                    fontSize: 12,
-                    marginBottom: 5,
-                },
             }}
         >
             <Tab.Screen

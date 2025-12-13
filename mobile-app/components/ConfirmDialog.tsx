@@ -74,7 +74,7 @@ export default function ConfirmDialog({
             backgroundColor: '#d1d5db',
         },
         confirmButton: {
-            backgroundColor: '#10b981',
+            backgroundColor: '#025937',
         },
         buttonText: {
             color: 'white',

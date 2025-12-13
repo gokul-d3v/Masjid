@@ -25,20 +25,25 @@ import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { dashboardService } from '../services/api';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, IndianRupee, Calendar, User, Hash, Info } from 'lucide-react-native';
+import { ArrowLeft, IndianRupee, Calendar, Hash, Info } from 'lucide-react-native';
 import AlertBox from '../components/AlertBox';
 import Header from '../components/Header';
 
 export default function AddCollectionScreen() {
-    const route = useRoute();
+    const route = useRoute<any>();
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
 
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
-    const [collectedBy, setCollectedBy] = useState('');
-    const [date, setDate] = useState('');
+    const [date, setDate] = useState(() => {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+        const year = today.getFullYear();
+        return `${day}-${month}-${year}`;
+    });
     const [receiptNumber, setReceiptNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<any>({});
@@ -50,21 +55,9 @@ export default function AddCollectionScreen() {
         title: '',
         message: '',
         type: 'info' as 'success' | 'error' | 'warning' | 'info',
-        buttons: [{ text: 'OK' } as {text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}]
+        buttons: [{ text: 'OK' } as { text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }]
     });
 
-    // Handle prefill data passed from other screens
-    useEffect(() => {
-        if (route.params?.prefillData) {
-            const { prefillData } = route.params;
-            if (prefillData.collectedBy) {
-                setCollectedBy(prefillData.collectedBy);
-            }
-            if (prefillData.description) {
-                setDescription(prefillData.description);
-            }
-        }
-    }, [route.params]);
 
     const validate = () => {
         const newErrors: any = {};
@@ -88,15 +81,6 @@ export default function AddCollectionScreen() {
             errorMessages.push('Please select a category');
         }
 
-        // Validate collected by
-        if (!collectedBy) {
-            newErrors.collectedBy = 'Collected by is required';
-            errorMessages.push('Please enter who collected the payment');
-        } else if (collectedBy.trim().length < 2) {
-            newErrors.collectedBy = 'Collected by must be at least 2 characters';
-            errorMessages.push('Collected by must be at least 2 characters');
-        }
-
         // Show errors as snackbar if there are any
         if (errorMessages.length > 0) {
             setSnackbarMessage(errorMessages.join('\n'));
@@ -109,7 +93,7 @@ export default function AddCollectionScreen() {
         }
     };
 
-    const categoryDisplayMap = {
+    const categoryDisplayMap: { [key: string]: string } = {
         'monthly_donation': 'Monthly Fund',
         'mayyathu': 'Mayyathu Fund',
         'general': 'General',
@@ -120,7 +104,7 @@ export default function AddCollectionScreen() {
         title: string,
         message: string,
         type: 'success' | 'error' | 'warning' | 'info' = 'info',
-        buttons: Array<{text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}> = [{ text: 'OK' }]
+        buttons: Array<{ text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive' }> = [{ text: 'OK' }]
     ) => {
         setAlertProps({ title, message, type, buttons });
         setAlertVisible(true);
@@ -131,12 +115,25 @@ export default function AddCollectionScreen() {
 
         setLoading(true);
         try {
+            // Convert date from DD-MM-YYYY to YYYY-MM-DD format for ISO date
+            let formattedDate = date;
+            if (date && date.includes('-')) {
+                const parts = date.split('-');
+                if (parts.length === 3) {
+                    // Check if date is in DD-MM-YYYY format
+                    if (parseInt(parts[0]) <= 31 && parseInt(parts[1]) <= 12) {
+                        formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // Convert to YYYY-MM-DD
+                    }
+                }
+            }
+
+            const isoDate = formattedDate ? new Date(formattedDate).toISOString() : new Date().toISOString();
+
             await dashboardService.addMoneyCollection({
                 amount: parseFloat(amount),
                 description: description || `${category} collection`,
                 category,
-                collectedBy,
-                date: date || new Date().toISOString(),
+                date: isoDate,
                 receiptNumber: receiptNumber || `REC${Date.now()}`
             });
 
@@ -230,7 +227,6 @@ export default function AddCollectionScreen() {
             borderRadius: 4,
             minHeight: 50,
             alignItems: 'center',
-            justifyContent: 'flex-start',
             paddingHorizontal: 12,
         },
         dropdownButtonError: {
@@ -451,9 +447,9 @@ export default function AddCollectionScreen() {
                                 error={!!errors.amount}
                                 style={styles.inputContainer}
                                 mode="outlined"
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
+                                theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                textColor="#000000"
+                                activeOutlineColor="#025937"
                                 left={<PaperInput.Icon icon={() => <IndianRupee size={20} color="#6b7280" />} />}
                             />
                             {errors.amount && (
@@ -466,9 +462,9 @@ export default function AddCollectionScreen() {
                                 onChangeText={setDescription}
                                 style={styles.inputContainer}
                                 mode="outlined"
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
+                                theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                textColor="#000000"
+                                activeOutlineColor="#025937"
                                 left={<PaperInput.Icon icon={() => <Info size={20} color="#6b7280" />} />}
                             />
 
@@ -498,21 +494,6 @@ export default function AddCollectionScreen() {
                                 <RNText style={styles.errorText}>{errors.category}</RNText>
                             )}
 
-                            <PaperInput
-                                label="Collected By *"
-                                value={collectedBy}
-                                onChangeText={setCollectedBy}
-                                style={styles.inputContainer}
-                                mode="outlined"
-                                error={!!errors.collectedBy}
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
-                                left={<PaperInput.Icon icon={() => <User size={20} color="#6b7280" />} />}
-                            />
-                            {errors.collectedBy && (
-                                <RNText style={styles.errorText}>{errors.collectedBy}</RNText>
-                            )}
 
                             <PaperInput
                                 label="Date"
@@ -520,11 +501,12 @@ export default function AddCollectionScreen() {
                                 onChangeText={setDate}
                                 style={styles.inputContainer}
                                 mode="outlined"
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
+                                theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                textColor="#000000"
+                                activeOutlineColor="#025937"
                                 left={<PaperInput.Icon icon={() => <Calendar size={20} color="#6b7280" />} />}
                                 placeholder="DD-MM-YYYY"
+                                keyboardType="numbers-and-punctuation" // More appropriate keyboard for date input
                             />
 
                             <PaperInput
@@ -533,9 +515,9 @@ export default function AddCollectionScreen() {
                                 onChangeText={setReceiptNumber}
                                 style={styles.inputContainer}
                                 mode="outlined"
-                                theme={{ colors: { primary: '#059669', background: 'transparent' } }}
-                                underlineColor="transparent"
-                                activeUnderlineColor="transparent"
+                                theme={{ colors: { primary: '#025937', background: 'transparent' } }}
+                                textColor="#000000"
+                                activeOutlineColor="#025937"
                                 left={<PaperInput.Icon icon={() => <Hash size={20} color="#6b7280" />} />}
                             />
 

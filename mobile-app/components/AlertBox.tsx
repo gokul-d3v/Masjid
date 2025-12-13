@@ -30,7 +30,7 @@ const AlertBox: React.FC<AlertBoxProps> = ({
   const getAlertIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={24} color="#10B981" />;
+        return <CheckCircle size={24} color="#025937" />;
       case 'error':
         return <XCircle size={24} color="#EF4444" />;
       case 'warning':

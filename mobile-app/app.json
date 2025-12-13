@@ -1,15 +1,14 @@
 {
   "expo": {
-    "name": "mobile-app",
-    "slug": "masjidapp",
+    "name": "KMJM",
+    "slug": "kmjm",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Splash2.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/Splash2.png",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "ios": {
@@ -21,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Splash2.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -33,7 +32,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "30b52389-77f4-41e0-919a-1baf9e28a509"
+        "projectId": "0fb3402e-cf3e-478e-8119-ca108682ffc0"
       }
     },
     "owner": "gokul_d3v",

@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image, KeyboardAvoidingView, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Image, KeyboardAvoidingView, ScrollView, Dimensions } from 'react-native';
 import {
     Button as PaperButton,
     TextInput as PaperTextInput,
     Checkbox,
 } from 'react-native-paper';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { authService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Animated } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+
+const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -17,32 +20,16 @@ export default function LoginScreen() {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
-    
     const { signIn } = useAuth();
     const navigation = useNavigation<any>();
 
-    // Animation values
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(20)).current;
-
-    useEffect(() => {
-        Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 800,
-                useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-                toValue: 0,
-                duration: 600,
-                useNativeDriver: true,
-            })
-        ]).start();
-    }, []);
-
     const handleLogin = async () => {
         if (!email.trim() || !password) {
-            Alert.alert('Error', 'Email and password are required');
+            Toast.show({
+                type: 'error',
+                text1: 'Validation Error',
+                text2: 'Email and password are required',
+            });
             return;
         }
 
@@ -52,28 +39,22 @@ export default function LoginScreen() {
             const { token, user } = response.data;
 
             await signIn(token, user);
-            // The App component will automatically redirect to Main navigator since token is now set
-            // We can optionally show the success message and let the context change handle navigation
-            Alert.alert('Success', 'Login successful!', [
-                {
-                    text: 'OK',
-                }
-            ]);
+            Toast.show({
+                type: 'success',
+                text1: 'Welcome to KMJM',
+                text2: 'Successfully signed in',
+            });
 
         } catch (error: any) {
             console.error(error);
-            Alert.alert('Login Failed', error.response?.data?.error || 'Check your credentials and try again');
+            Toast.show({
+                type: 'error',
+                text1: 'Login Failed',
+                text2: error.response?.data?.error || 'Invalid credentials',
+            });
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleForgotPassword = () => {
-        Alert.alert('Forgot Password', 'Password reset functionality would be implemented here');
-    };
-
-    const handleSocialLogin = (platform: string) => {
-        Alert.alert(`${platform} Login`, `${platform} login functionality would be implemented here`);
     };
 
     const handleCreateAccount = () => {
@@ -83,123 +64,115 @@ export default function LoginScreen() {
     return (
         <KeyboardAvoidingView
             style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+            <View style={styles.backgroundHeader} />
+
             <ScrollView
-                contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+                contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
-                <Animated.View style={[styles.formContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                {/* Logo Area */}
-                <View style={styles.logoContainer}>
-                    <Image source={require('../assets/Splash.png')} style={styles.appLogo} />
-                    <Text style={styles.appName}>KUTHIYATHODE MUSLIM JAMAHTH MAHALLU</Text>
-                </View>
-
-                <Text style={styles.title}>Sign in</Text>
-
-
-                {/* Email Input */}
-                <PaperTextInput
-                    label="Email Address"
-                    value={email}
-                    onChangeText={setEmail}
-                    style={[styles.input, { backgroundColor: '#ffffff' }]}
-                    mode="outlined"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    activeOutlineColor="#10b981"
-                    outlineColor="#10b981"
-                    textColor="#000000"
-                    left={<PaperTextInput.Icon icon={() => <Mail size={20} color="#6b7280" />} />}
-                />
-
-                {/* Password Input */}
-                <PaperTextInput
-                    label="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    style={[styles.input, { backgroundColor: '#ffffff' }]}
-                    mode="outlined"
-                    secureTextEntry={!passwordVisible}
-                    activeOutlineColor="#10b981"
-                    outlineColor="#10b981"
-                    textColor="#000000"
-                    left={<PaperTextInput.Icon icon={() => <Lock size={20} color="#6b7280" />} />}
-                    right={<PaperTextInput.Icon
-                        icon={passwordVisible ? 'eye-off' : 'eye'}
-                        onPress={() => setPasswordVisible(!passwordVisible)}
-                    />}
-                />
-
-                {/* Forgot Password Link */}
-                <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
-                    <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-                </TouchableOpacity>
-
-                {/* Remember Me Checkbox */}
-                <View style={styles.checkboxContainer}>
-                    <Checkbox
-                        status={rememberMe ? 'checked' : 'unchecked'}
-                        onPress={() => setRememberMe(!rememberMe)}
-                        uncheckedColor="#6b7280"
-                        color="#143D30"
-                    />
-                    <Text style={styles.checkboxText}>
-                        I agree to the {' '}
-                        <Text style={styles.accentText}>User Agreement</Text>
-                        {' '} and {' '}
-                        <Text style={styles.accentText}>Privacy Policy</Text>
-                    </Text>
-                </View>
-
-                {/* Sign In Button */}
-                <PaperButton
-                    mode="contained"
-                    onPress={handleLogin}
-                    loading={loading}
-                    disabled={loading}
-                    style={styles.signInButton}
-                    labelStyle={styles.buttonLabel}
+                <Animatable.View
+                    animation="fadeInUp"
+                    duration={800}
+                    style={styles.cardContainer}
                 >
-                    {loading ? null : 'Sign in'}
-                </PaperButton>
+                    {/* Logo Section */}
+                    <View style={styles.logoWrapper}>
+                        <View style={styles.logoBackground}>
+                            <Image
+                                source={require('../assets/Splash2.png')}
+                                style={styles.logo}
+                            />
+                        </View>
+                        <Text style={styles.brandTitle}>KMJM</Text>
+                        <Text style={styles.brandSubtitle}>KUTHIYATHODE MUSLIM JAMAHTH MAHALLU</Text>
+                    </View>
 
-                {/* Divider */}
-                <View style={styles.dividerContainer}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>other way to sign in</Text>
-                    <View style={styles.dividerLine} />
-                </View>
+                    <Text style={styles.welcomeText}>Welcome Back</Text>
+                    <Text style={styles.instructionText}>Sign in to continue to your dashboard</Text>
 
-                {/* Social Login Options */}
-                <View style={styles.socialLoginContainer}>
-                    <TouchableOpacity
-                        style={[styles.socialButton, styles.googleButton]}
-                        onPress={() => handleSocialLogin('Google')}
-                    >
-                        <Text style={styles.socialButtonText}>G</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.socialButton, styles.facebookButton]}
-                        onPress={() => handleSocialLogin('Facebook')}
-                    >
-                        <Text style={styles.socialButtonText}>f</Text>
-                    </TouchableOpacity>
-                </View>
+                    {/* Form Section */}
+                    <View style={styles.formSection}>
+                        <PaperTextInput
+                            label="Email Address"
+                            value={email}
+                            onChangeText={setEmail}
+                            style={styles.input}
+                            mode="outlined"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            outlineColor="#e2e8f0"
+                            activeOutlineColor="#025937"
+                            textColor="#1e293b"
+                            theme={{ roundness: 12 }}
+                            left={<PaperTextInput.Icon icon={() => <Mail size={18} color="#64748b" />} />}
+                        />
 
-                {/* Footer Text */}
-                <View style={styles.footerContainer}>
-                    <Text style={styles.footerText}>
-                        Don't have an account? {' '}
-                    </Text>
-                    <TouchableOpacity onPress={handleCreateAccount}>
-                        <Text style={styles.createAccountText}>
-                            Create Account
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </Animated.View>
+                        <PaperTextInput
+                            label="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            style={styles.input}
+                            mode="outlined"
+                            secureTextEntry={!passwordVisible}
+                            outlineColor="#e2e8f0"
+                            activeOutlineColor="#025937"
+                            textColor="#1e293b"
+                            theme={{ roundness: 12 }}
+                            left={<PaperTextInput.Icon icon={() => <Lock size={18} color="#64748b" />} />}
+                            right={
+                                <PaperTextInput.Icon
+                                    icon={() => passwordVisible ? <EyeOff size={18} color="#64748b" /> : <Eye size={18} color="#64748b" />}
+                                    onPress={() => setPasswordVisible(!passwordVisible)}
+                                />
+                            }
+                        />
+
+                        <View style={styles.optionsRow}>
+                            <View style={styles.rememberMeContainer}>
+                                <Checkbox.Android
+                                    status={rememberMe ? 'checked' : 'unchecked'}
+                                    onPress={() => setRememberMe(!rememberMe)}
+                                    color="#025937"
+                                    uncheckedColor="#cbd5e1"
+                                />
+                                <Text style={styles.rememberText}>Remember me</Text>
+                            </View>
+                            <TouchableOpacity>
+                                <Text style={styles.forgotText}>Forgot Password?</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <PaperButton
+                            mode="contained"
+                            onPress={handleLogin}
+                            loading={loading}
+                            disabled={loading}
+                            style={styles.loginButton}
+                            labelStyle={styles.loginButtonLabel}
+                            contentStyle={{ height: 50 }}
+                        >
+                            {loading ? 'Signing In...' : 'Sign In'}
+                        </PaperButton>
+
+                        {/* Social Login Divider */}
+                        <View style={styles.dividerContainer}>
+                            <View style={styles.divider} />
+                            <Text style={styles.dividerText}>OR</Text>
+                            <View style={styles.divider} />
+                        </View>
+
+                        {/* Register Link */}
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Don't have an account? </Text>
+                            <TouchableOpacity onPress={handleCreateAccount}>
+                                <Text style={styles.signupText}>Create Account</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Animatable.View>
             </ScrollView>
         </KeyboardAvoidingView>
     );
@@ -208,131 +181,166 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff', // Pure white background
+        backgroundColor: '#f8fafc', // Slate-50 - Very light cool gray
     },
-    formContainer: {
-        flex: 1,
-        maxWidth: 1400,
-        width: '100%',
-        alignSelf: 'center',
+    backgroundHeader: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: height * 0.35,
+        backgroundColor: '#025937', // Dark green brand color
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+    },
+    scrollContent: {
+        flexGrow: 1,
         justifyContent: 'center',
-        padding: 32,
+        padding: 20,
+        paddingTop: Platform.OS === 'ios' ? 60 : 40,
     },
-    logoContainer: {
+    cardContainer: {
+        backgroundColor: '#ffffff',
+        borderRadius: 24,
+        padding: 24,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 10,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10,
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    logoWrapper: {
         alignItems: 'center',
-        marginBottom: 24,
+        marginTop: -100,
+        marginBottom: 20,
     },
-    appLogo: {
-        width: 240,
-        height: 240,
+    logoBackground: {
+        width: 170,
+        height: 170,
+        backgroundColor: '#ffffff',
+        borderRadius: 42, // Squircle
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+        marginBottom: 16,
+    },
+    logo: {
+        width: 150,
+        height: 150,
         resizeMode: 'contain',
-        marginBottom: 8,
     },
-    appName: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#2563eb',
-        marginBottom: 24,
-        textAlign: 'center',
-    },
-    title: {
+    brandTitle: {
         fontSize: 28,
-        fontWeight: 'bold',
-        color: '#143D30', // Forest green
-        marginBottom: 24,
+        fontWeight: '800', // ExtraBold
+        color: '#0f172a', // Slate-900
+        letterSpacing: 2,
+        marginBottom: 4,
+    },
+    brandSubtitle: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: '#64748b', // Slate-500
         textAlign: 'center',
+        letterSpacing: 1,
+        maxWidth: 240,
+    },
+    welcomeText: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#1e293b',
+        textAlign: 'center',
+        marginTop: 10,
+        marginBottom: 4,
+    },
+    instructionText: {
+        fontSize: 14,
+        color: '#94a3b8',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    formSection: {
+        width: '100%',
     },
     input: {
         marginBottom: 16,
+        backgroundColor: '#f8fafc',
+        fontSize: 15,
     },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        marginBottom: 16,
-    },
-    forgotPasswordText: {
-        fontSize: 14,
-        color: '#143D30', // Forest green
-        fontWeight: '500',
-    },
-    checkboxContainer: {
+    optionsRow: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 24,
     },
-    checkboxText: {
-        fontSize: 14,
-        color: '#64748b', // Light gray
-        flex: 1,
-        marginLeft: 8,
+    rememberMeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: -4, // Offset native checkbox padding
     },
-    accentText: {
-        color: '#143D30', // Forest green
+    rememberText: {
+        fontSize: 13,
+        color: '#64748b',
+    },
+    forgotText: {
+        fontSize: 13,
+        color: '#025937',
         fontWeight: '600',
     },
-    signInButton: {
-        backgroundColor: '#143D30', // Deep forest green
-        borderRadius: 8,
-        paddingVertical: 8,
-        marginBottom: 24,
+    loginButton: {
+        backgroundColor: '#025937',
+        borderRadius: 12,
+        marginBottom: 20,
+        elevation: 4,
+        shadowColor: "#025937",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowRadius: 8,
     },
-    buttonLabel: {
+    loginButtonLabel: {
         fontSize: 16,
-        fontWeight: '600',
-        color: 'white',
+        fontWeight: '700',
+        letterSpacing: 0.5,
     },
     dividerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 20,
     },
-    dividerLine: {
+    divider: {
         flex: 1,
         height: 1,
-        backgroundColor: '#e2e8f0', // Light gray
+        backgroundColor: '#e2e8f0',
     },
     dividerText: {
-        fontSize: 14,
-        color: '#64748b', // Light gray
         marginHorizontal: 16,
+        fontSize: 12,
+        color: '#94a3b8',
+        fontWeight: '600',
     },
-    socialLoginContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 24,
-    },
-    socialButton: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 12,
-        borderWidth: 1,
-    },
-    googleButton: {
-        backgroundColor: 'transparent',
-        borderColor: '#e2e8f0',
-    },
-    facebookButton: {
-        backgroundColor: 'transparent',
-        borderColor: '#e2e8f0',
-    },
-    socialButtonText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    footerContainer: {
+    footer: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
     },
     footerText: {
         fontSize: 14,
-        color: '#64748b', // Light gray
+        color: '#64748b',
     },
-    createAccountText: {
+    signupText: {
         fontSize: 14,
-        color: '#143D30', // Forest green
-        fontWeight: '600',
+        color: '#025937',
+        fontWeight: '700',
     },
 });

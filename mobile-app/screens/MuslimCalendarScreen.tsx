@@ -339,7 +339,7 @@ const MuslimCalendarScreen = () => {
         <PaperCard style={styles.locationCard}>
           <View style={styles.locationContent}>
             <View style={styles.locationHeader}>
-              <MapPin size={20} color="#10b981" />
+              <MapPin size={20} color="#025937" />
               <Text style={styles.locationTitle}>Current Location</Text>
             </View>
             <View style={styles.locationSelection}>
@@ -353,7 +353,7 @@ const MuslimCalendarScreen = () => {
                   <Text style={styles.buttonText}>Use My Location</Text>
                 </PaperButton>
                 <PaperButton
-                  mode="contained"
+                  mode="outlined"
                   onPress={() => {
                     // In a real app, this would open a city selection modal
                     // For now, let's just cycle through Kerala cities
@@ -375,7 +375,7 @@ const MuslimCalendarScreen = () => {
         <PaperCard style={styles.dateCard}>
           <View style={styles.dateContent}>
             <View style={styles.dateIconContainer}>
-              <CalendarIcon size={24} color="#10b981" />
+              <CalendarIcon size={24} color="#025937" />
             </View>
             <View style={styles.dateTextContainer}>
               <Text style={styles.gregorianDate}>
@@ -397,7 +397,7 @@ const MuslimCalendarScreen = () => {
         <PaperCard style={styles.prayerCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderContent}>
-              <Clock size={20} color="#10b981" />
+              <Clock size={20} color="#025937" />
               <Text style={styles.cardTitle}>Prayer Times</Text>
             </View>
             <PaperButton mode="text" onPress={refreshPrayerTimes} disabled={loading}>
@@ -420,7 +420,7 @@ const MuslimCalendarScreen = () => {
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#10b981" />
+              <ActivityIndicator size="large" color="#025937" />
               <Text style={styles.loadingText}>Fetching prayer times...</Text>
             </View>
           ) : prayerTimes && (
@@ -462,7 +462,7 @@ const MuslimCalendarScreen = () => {
 
               <View style={styles.prayerRow}>
                 <View style={styles.prayerIconContainer}>
-                  <Sun size={20} color="#10B981" />
+                  <Sun size={20} color="#025937" />
                 </View>
                 <View style={styles.prayerTextContainer}>
                   <Text style={styles.prayerName}>Dhuhr (الظهر)</Text>
@@ -507,7 +507,7 @@ const MuslimCalendarScreen = () => {
         <PaperCard style={styles.calendarCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderContent}>
-              <CalendarIcon size={20} color="#10b981" />
+              <CalendarIcon size={20} color="#025937" />
               <Text style={styles.cardTitle}>Islamic Calendar</Text>
             </View>
           </View>
@@ -530,7 +530,7 @@ const MuslimCalendarScreen = () => {
         <PaperCard style={styles.eventsCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderContent}>
-              <CalendarIcon size={20} color="#10b981" />
+              <CalendarIcon size={20} color="#025937" />
               <Text style={styles.cardTitle}>Upcoming Events</Text>
             </View>
           </View>
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   },
   selectedCity: {
     fontWeight: 'bold',
-    color: '#10b981',
+    color: '#025937',
   },
   locationButtons: {
     flexDirection: 'row',
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
   },
   hijriDate: {
     fontSize: 16,
-    color: '#10b981',
+    color: '#025937',
     fontWeight: '500',
   },
   prayerCard: {
@@ -701,11 +701,11 @@ const styles = StyleSheet.create({
   nextPrayerName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#10b981',
+    color: '#025937',
   },
   timeRemaining: {
     fontSize: 14,
-    color: '#10b981',
+    color: '#025937',
     fontWeight: '500',
   },
   refreshButtonContent: {
@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
   },
   monthText: {
     fontSize: 12,
-    color: '#10b981',
+    color: '#025937',
     fontWeight: '500',
   },
   eventsCard: {
